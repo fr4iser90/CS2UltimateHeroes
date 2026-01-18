@@ -16,12 +16,14 @@ namespace UltimateHeroes.Application.Services
         private readonly ICooldownManager _cooldownManager;
         private readonly IPlayerService _playerService;
         private readonly Infrastructure.Effects.EffectManager? _effectManager;
+        private readonly IMasteryService? _masteryService;
         
-        public SkillService(ICooldownManager cooldownManager, IPlayerService playerService, Infrastructure.Effects.EffectManager? effectManager = null)
+        public SkillService(ICooldownManager cooldownManager, IPlayerService playerService, Infrastructure.Effects.EffectManager? effectManager = null, IMasteryService? masteryService = null)
         {
             _cooldownManager = cooldownManager;
             _playerService = playerService;
             _effectManager = effectManager;
+            _masteryService = masteryService;
             
             // Set EffectManager for skills that need it
             if (_effectManager != null)
@@ -93,7 +95,17 @@ namespace UltimateHeroes.Application.Services
             // Activate based on type
             if (skill is IActiveSkill activeSkill)
             {
+                // Store skill ID for damage tracking
+                var currentSkillId = skillId;
+                
                 activeSkill.Activate(player);
+                
+                // Track Skill Use for Mastery
+                _masteryService?.TrackSkillUse(steamId, skillId);
+                
+                // Note: Damage tracking for skills like Fireball is done within the skill itself
+                // Skills that deal damage should call TrackSkillDamage via a callback or event
+                // For now, we track uses and kills, damage tracking can be added per-skill
                 
                 // Set Cooldown
                 var playerState = _playerService.GetPlayer(steamId);
@@ -111,6 +123,14 @@ namespace UltimateHeroes.Application.Services
                     _cooldownManager.SetCooldown(steamId, skillId, cooldown);
                 }
             }
+        }
+        
+        /// <summary>
+        /// Tracks damage dealt by a skill (called by skills after dealing damage)
+        /// </summary>
+        public void TrackSkillDamage(string steamId, string skillId, float damage)
+        {
+            _masteryService?.TrackSkillDamage(steamId, skillId, damage);
         }
         
         public float GetSkillCooldown(string steamId, string skillId)

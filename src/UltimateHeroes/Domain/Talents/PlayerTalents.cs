@@ -30,6 +30,15 @@ namespace UltimateHeroes.Domain.Talents
             return node.CanUnlock(UnlockedTalents);
         }
         
+        public bool CanLevelUp(TalentNode node)
+        {
+            if (AvailableTalentPoints <= 0) return false;
+            if (!IsUnlocked(node.Id)) return false;
+            int currentLevel = GetTalentLevel(node.Id);
+            if (currentLevel >= node.MaxLevel) return false;
+            return true;
+        }
+        
         public void UnlockTalent(string talentId, int level = 1)
         {
             if (!UnlockedTalents.Contains(talentId))
@@ -37,6 +46,14 @@ namespace UltimateHeroes.Domain.Talents
                 UnlockedTalents.Add(talentId);
             }
             TalentLevels[talentId] = level;
+            AvailableTalentPoints--;
+        }
+        
+        public void LevelUpTalent(string talentId)
+        {
+            if (!IsUnlocked(talentId)) return;
+            int currentLevel = GetTalentLevel(talentId);
+            TalentLevels[talentId] = currentLevel + 1;
             AvailableTalentPoints--;
         }
     }

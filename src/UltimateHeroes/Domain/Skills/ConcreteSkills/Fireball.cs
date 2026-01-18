@@ -49,6 +49,9 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             // For now, we'll apply damage without modifiers (modifiers are applied on spawn)
             Dictionary<string, float>? talentModifiers = null;
             
+            // Track total damage for mastery
+            float totalDamageDealt = 0f;
+            
             // Apply damage to all players in radius
             var playersInRadius = GameHelpers.GetPlayersInRadius(explosionPos, radius);
             foreach (var target in playersInRadius)
@@ -57,7 +60,15 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 if (!target.IsValid || target.PlayerPawn.Value == null) continue;
                 
                 GameHelpers.DamagePlayer(target, damage, player, talentModifiers);
+                totalDamageDealt += damage;
                 target.PrintToChat($" {ChatColors.Orange}[Fireball]{ChatColors.Default} You took {damage} damage!");
+            }
+            
+            // Track damage for mastery (if player has SteamID)
+            if (player.AuthorizedSteamID != null && totalDamageDealt > 0)
+            {
+                var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+                SkillServiceHelper.TrackSkillDamage(steamId, Id, totalDamageDealt);
             }
             
             player.PrintToChat($" {ChatColors.Orange}[Fireball]{ChatColors.Default} Exploded! Damage: {damage}, Radius: {radius}");

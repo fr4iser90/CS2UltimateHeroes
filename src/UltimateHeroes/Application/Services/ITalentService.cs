@@ -14,7 +14,9 @@ namespace UltimateHeroes.Application.Services
         
         // Talent Management
         bool UnlockTalent(string steamId, string talentId);
+        bool LevelUpTalent(string steamId, string talentId);
         bool CanUnlockTalent(string steamId, string talentId);
+        bool CanLevelUpTalent(string steamId, string talentId);
         List<TalentNode> GetUnlockableTalents(string steamId, TalentTreeType treeType);
         List<TalentNode> GetUnlockedTalents(string steamId, TalentTreeType treeType);
         
@@ -24,5 +26,6 @@ namespace UltimateHeroes.Application.Services
         
         // Talent Effects
         Dictionary<string, float> GetTalentModifiers(string steamId);
+        int GetTalentLevel(string steamId, string talentId);
     }
 }

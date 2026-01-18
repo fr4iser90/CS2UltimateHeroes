@@ -76,6 +76,7 @@ namespace UltimateHeroes
         private IBuildService? _buildService;
         private IXpService? _xpService;
         private ITalentService? _talentService;
+        private Application.Services.IMasteryService? _masteryService;
         
         // Event Handlers
         private PlayerKillHandler? _playerKillHandler;
@@ -96,6 +97,7 @@ namespace UltimateHeroes
             _playerRepository = new PlayerRepository(_database);
             _buildRepository = new BuildRepository(_database);
             var talentRepository = new Infrastructure.Database.Repositories.TalentRepository(_database);
+            var masteryRepository = new Infrastructure.Database.Repositories.MasteryRepository(_database);
             
             // Initialize Infrastructure
             _cooldownManager = new CooldownManager();
@@ -105,7 +107,11 @@ namespace UltimateHeroes
             // Initialize Services
             _playerService = new PlayerService(_playerRepository);
             _heroService = new HeroService();
-            _skillService = new SkillService(_cooldownManager, _playerService, _effectManager);
+            _masteryService = new Application.Services.MasteryService(masteryRepository);
+            _skillService = new SkillService(_cooldownManager, _playerService, _effectManager, _masteryService);
+            
+            // Set SkillService in Helper for Damage Tracking
+            Infrastructure.Helpers.SkillServiceHelper.SetSkillService(_skillService);
             var buildValidator = new BuildValidator();
             _buildService = new BuildService(_buildRepository, _heroService, _skillService, buildValidator, _playerService);
             _talentService = new TalentService(talentRepository);
@@ -135,7 +141,7 @@ namespace UltimateHeroes
             });
             
             // Register Event Handlers
-            _playerKillHandler = new PlayerKillHandler(_xpService, _playerService);
+            _playerKillHandler = new PlayerKillHandler(_xpService, _playerService, _masteryService);
             _playerHurtHandler = new PlayerHurtHandler(_playerService);
             _eventSystem.RegisterHandler<PlayerKillEvent>(_playerKillHandler);
             _eventSystem.RegisterHandler<PlayerHurtEvent>(_playerHurtHandler);

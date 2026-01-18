@@ -95,6 +95,51 @@ namespace UltimateHeroes.Application.Services
             return true;
         }
         
+        public bool LevelUpTalent(string steamId, string talentId)
+        {
+            if (!CanLevelUpTalent(steamId, talentId))
+            {
+                return false;
+            }
+            
+            var playerTalents = _talentRepository.GetPlayerTalents(steamId);
+            if (playerTalents == null) return false;
+            
+            // Find Talent Node
+            TalentNode? talentNode = null;
+            foreach (var tree in _talentTrees.Values)
+            {
+                talentNode = tree.GetNode(talentId);
+                if (talentNode != null) break;
+            }
+            
+            if (talentNode == null) return false;
+            
+            // Level Up Talent
+            playerTalents.LevelUpTalent(talentId);
+            _talentRepository.SavePlayerTalents(playerTalents);
+            
+            return true;
+        }
+        
+        public bool CanLevelUpTalent(string steamId, string talentId)
+        {
+            var playerTalents = _talentRepository.GetPlayerTalents(steamId);
+            if (playerTalents == null) return false;
+            
+            // Find Talent Node
+            TalentNode? talentNode = null;
+            foreach (var tree in _talentTrees.Values)
+            {
+                talentNode = tree.GetNode(talentId);
+                if (talentNode != null) break;
+            }
+            
+            if (talentNode == null) return false;
+            
+            return playerTalents.CanLevelUp(talentNode);
+        }
+        
         public bool CanUnlockTalent(string steamId, string talentId)
         {
             var playerTalents = _talentRepository.GetPlayerTalents(steamId);
@@ -165,6 +210,13 @@ namespace UltimateHeroes.Application.Services
             }
             
             return modifiers;
+        }
+        
+        public int GetTalentLevel(string steamId, string talentId)
+        {
+            var playerTalents = _talentRepository.GetPlayerTalents(steamId);
+            if (playerTalents == null) return 0;
+            return playerTalents.GetTalentLevel(talentId);
         }
         
         private void ApplyTalentEffect(TalentEffect effect, int level, Dictionary<string, float> modifiers)

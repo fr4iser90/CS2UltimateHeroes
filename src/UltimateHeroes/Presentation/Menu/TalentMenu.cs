@@ -71,19 +71,28 @@ namespace UltimateHeroes.Presentation.Menu
                 {
                     var isUnlocked = unlockedTalents.Any(t => t.Id == talent.Id);
                     var canUnlock = _talentService.CanUnlockTalent(steamId, talent.Id);
+                    var canLevelUp = _talentService.CanLevelUpTalent(steamId, talent.Id);
+                    var currentLevel = _talentService.GetTalentLevel(steamId, talent.Id);
                     
                     string display;
                     string subDisplay;
                     
                     if (isUnlocked)
                     {
-                        display = $"<font color='green'>[UNLOCKED]</font> <font color='lightblue'>{talent.DisplayName}</font> (Lv.{talent.MaxLevel})";
-                        subDisplay = $"<font color='grey' class='fontSize-sm'>{talent.Description}</font>";
+                        var levelText = canLevelUp ? $"Lv.{currentLevel + 1}/{talent.MaxLevel} [UPGRADE]" : $"Lv.{currentLevel}/{talent.MaxLevel} [MAX]";
+                        var levelColor = canLevelUp ? "yellow" : "green";
+                        display = $"<font color='green'>[UNLOCKED]</font> <font color='lightblue'>{talent.DisplayName}</font> <font color='{levelColor}'>{levelText}</font>";
+                        subDisplay = $"<font color='grey' class='fontSize-sm'>{talent.Description}";
+                        if (canLevelUp)
+                        {
+                            subDisplay += $"<br><font color='yellow'>Click to level up! (Cost: 1 Talent Point)</font>";
+                        }
+                        subDisplay += "</font>";
                     }
                     else if (canUnlock)
                     {
                         display = $"<font color='yellow'>[AVAILABLE]</font> <font color='lightblue'>{talent.DisplayName}</font>";
-                        subDisplay = $"<font color='grey' class='fontSize-sm'>{talent.Description}<br>Row {talent.Row}, Column {talent.Column}</font>";
+                        subDisplay = $"<font color='grey' class='fontSize-sm'>{talent.Description}<br>Row {talent.Row}, Column {talent.Column}<br><font color='yellow'>Click to unlock! (Cost: 1 Talent Point)</font></font>";
                     }
                     else
                     {
@@ -104,15 +113,31 @@ namespace UltimateHeroes.Presentation.Menu
                             {
                                 MenuManager.CloseMenu(p);
                                 p.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} Talent unlocked: {talent.DisplayName}");
+                                // Refresh menu
+                                ShowTalentTree(p, treeType);
                             }
                             else
                             {
                                 p.PrintToChat($" {ChatColors.Red}[Ultimate Heroes]{ChatColors.Default} Failed to unlock talent!");
                             }
                         }
+                        else if (isUnlocked && canLevelUp)
+                        {
+                            if (_talentService.LevelUpTalent(steamId, talentId))
+                            {
+                                MenuManager.CloseMenu(p);
+                                p.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} Talent leveled up: {talent.DisplayName}");
+                                // Refresh menu
+                                ShowTalentTree(p, treeType);
+                            }
+                            else
+                            {
+                                p.PrintToChat($" {ChatColors.Red}[Ultimate Heroes]{ChatColors.Default} Failed to level up talent!");
+                            }
+                        }
                         else if (isUnlocked)
                         {
-                            p.PrintToChat($" {ChatColors.Yellow}[Ultimate Heroes]{ChatColors.Default} This talent is already unlocked!");
+                            p.PrintToChat($" {ChatColors.Yellow}[Ultimate Heroes]{ChatColors.Default} This talent is already at max level!");
                         }
                         else
                         {
