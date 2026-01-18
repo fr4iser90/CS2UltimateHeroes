@@ -306,3 +306,190 @@
 - **Engineer** hat noch keine Passives (TODO: MiniSentryPassive, UtilityCooldownReductionPassive)
 - Alle Skills haben **Mastery Tracking** (Kills, Uses, Damage, Escapes)
 - Alle Talents haben **Level-Up Support** (Level 1-5, je nach Talent)
+
+⚡ Neue Active Skills (Normal Skills)
+🔥 Damage / Combat
+
+Shockwave
+
+Typ: Active
+
+Tags: Damage, CrowdControl, Area
+
+Effekt: Kegelförmige Druckwelle, knockt Gegner zurück
+
+Synergie: Vanguard, Combat Tree
+
+Piercing Shot
+
+Tags: Damage
+
+Effekt: Schuss durchdringt X Gegner
+
+Scaling: Durchschläge + Damage pro Level
+
+Grenade Toss
+
+Tags: Damage, Area
+
+Effekt: Verzögerte Explosion
+
+Synergie: Utility Tree (Extra Nade)
+
+🛡️ Defense / Tank
+
+Energy Shield
+
+Tags: Defense, Utility
+
+Effekt: Temporärer Schild (HP oder % Damage Reduction)
+
+Dauer skaliert mit Level
+
+Taunt Pulse
+
+Tags: Defense, CrowdControl
+
+Effekt: Zwingt Gegner im Radius, dich anzugreifen
+
+Vanguard-Core Skill
+
+🧠 Utility / Control
+
+EMP Pulse
+
+Tags: Utility, CrowdControl
+
+Effekt: Disable Skills / Sentries / Ultimates für X Sekunden
+
+Engineer-Signature
+
+Scanner Drone
+
+Tags: Utility, Area
+
+Effekt: Revealt Gegner im Radius
+
+Counter zu Stealth
+
+🏃 Mobility
+
+Wall Dash
+
+Tags: Mobility
+
+Effekt: Dash entlang von Wänden
+
+Grapple Hook
+
+Tags: Mobility, Utility
+
+Effekt: Zieh dich an Oberflächen oder Gegner heran
+
+🛡️ Neue Passive Skills
+🧱 Vanguard / Tank
+
+Fortified Plating
+
+Effekt: +X% Damage Reduction unter 50% HP
+
+Shield on Assist
+
+Effekt: Schild bei Assist (nicht Kill)
+
+Fördert Teamplay
+
+👻 Phantom / Stealth
+
+Backstab Momentum
+
+Effekt: Backstab reduziert Cooldowns
+
+Fade on Kill
+
+Effekt: Kurzzeit-Stealth nach Kill (0.5–1s)
+
+🛠️ Engineer / Utility
+
+Mini Sentry Passive ✅ (passt perfekt zu deinem TODO)
+
+Effekt: Platziert automatisch Mini-Sentry nach Cooldown
+
+Utility Cooldown Reduction
+
+Effekt: -X% Cooldown auf Utility Skills
+
+Overclock
+
+Effekt: Skills werden stärker, kosten aber HP oder erzeugen Heat
+
+🌿 Generic Passives
+
+Life on Kill
+
+Effekt: +HP pro Kill
+
+Adaptive Armor
+
+Effekt: Erhöht Armor gegen zuletzt erlittenen Schadenstyp
+
+🌟 Neue Ultimate Skills
+💥 Damage Ultimates
+
+Meteor Strike
+
+Tags: Damage, Area, Ultimate
+
+Effekt: Verzögerter Map-Impact Einschlag
+
+Counterplay durch Delay
+
+Bullet Storm
+
+Effekt: Massive Feuerrate + Infinite Ammo für X Sekunden
+
+🛡️ Tank / Control Ultimates
+
+Fortress Mode
+
+Vanguard-Ultimate
+
+Effekt:
+
++Armor
+
+Immun gegen CC
+
+Kein Sprint
+
+Battle Standard
+
+Effekt: Platziert Banner → Buffs für Allies im Radius
+
+🧠 Utility / Tactical Ultimates
+
+Time Dilation
+
+Effekt: Gegner verlangsamt, Team normal
+
+Extrem stark, gut mit hohem Cooldown
+
+Global Scan
+
+Effekt: Revealt alle Gegner kurzzeitig
+
+👻 Stealth Ultimates
+
+Shadow Realm
+
+Effekt:
+
+Vollständige Unsichtbarkeit
+
+Keine Collision
+
+Kein Schaden möglich (reines Movement)
+
+Execution Mark
+
+Effekt: Markierter Gegner nimmt extrem erhöhten Schaden

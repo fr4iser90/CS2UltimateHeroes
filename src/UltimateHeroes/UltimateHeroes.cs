@@ -185,14 +185,57 @@ namespace UltimateHeroes
             // Register Skills
             _skillService.RegisterSkills(new System.Collections.Generic.List<Domain.Skills.ISkill>
             {
+                // Active Skills
                 new Fireball(),
                 new Domain.Skills.ConcreteSkills.Blink(),
                 new Domain.Skills.ConcreteSkills.Stealth(),
+                new Domain.Skills.ConcreteSkills.Shockwave(),
+                new Domain.Skills.ConcreteSkills.PiercingShot(),
+                new Domain.Skills.ConcreteSkills.GrenadeToss(),
+                new Domain.Skills.ConcreteSkills.EnergyShield(),
+                new Domain.Skills.ConcreteSkills.TauntPulse(),
+                new Domain.Skills.ConcreteSkills.EMPPulse(),
+                new Domain.Skills.ConcreteSkills.ScannerDrone(),
+                new Domain.Skills.ConcreteSkills.WallDash(),
+                new Domain.Skills.ConcreteSkills.GrappleHook(),
+                
+                // Passive Skills
                 new Domain.Skills.ConcreteSkills.HealingAura(),
-                new Domain.Skills.ConcreteSkills.Teleport(),
                 new Domain.Skills.ConcreteSkills.ArmorPerKillPassive(),
-                new Domain.Skills.ConcreteSkills.SilentFootstepsPassive()
+                new Domain.Skills.ConcreteSkills.SilentFootstepsPassive(),
+                new Domain.Skills.ConcreteSkills.FortifiedPlatingPassive(),
+                new Domain.Skills.ConcreteSkills.ShieldOnAssistPassive(),
+                new Domain.Skills.ConcreteSkills.BackstabMomentumPassive(),
+                new Domain.Skills.ConcreteSkills.FadeOnKillPassive(),
+                new Domain.Skills.ConcreteSkills.MiniSentryPassive(),
+                new Domain.Skills.ConcreteSkills.UtilityCooldownReductionPassive(),
+                new Domain.Skills.ConcreteSkills.OverclockPassive(),
+                new Domain.Skills.ConcreteSkills.LifeOnKillPassive(),
+                new Domain.Skills.ConcreteSkills.AdaptiveArmorPassive(),
+                
+                // Ultimate Skills
+                new Domain.Skills.ConcreteSkills.Teleport(),
+                new Domain.Skills.ConcreteSkills.MeteorStrike(),
+                new Domain.Skills.ConcreteSkills.BulletStorm(),
+                new Domain.Skills.ConcreteSkills.FortressMode(),
+                new Domain.Skills.ConcreteSkills.BattleStandard(),
+                new Domain.Skills.ConcreteSkills.TimeDilation(),
+                new Domain.Skills.ConcreteSkills.GlobalScan(),
+                new Domain.Skills.ConcreteSkills.ShadowRealm(),
+                new Domain.Skills.ConcreteSkills.ExecutionMark()
             });
+            
+            // Set EffectManager for skills that need it
+            Domain.Skills.ConcreteSkills.Stealth.EffectManager = _effectManager;
+            Domain.Skills.ConcreteSkills.EnergyShield.EffectManager = _effectManager;
+            Domain.Skills.ConcreteSkills.TauntPulse.EffectManager = _effectManager;
+            Domain.Skills.ConcreteSkills.EMPPulse.EffectManager = _effectManager;
+            Domain.Skills.ConcreteSkills.FadeOnKillPassive.EffectManager = _effectManager;
+            Domain.Skills.ConcreteSkills.BulletStorm.EffectManager = _effectManager;
+            Domain.Skills.ConcreteSkills.FortressMode.EffectManager = _effectManager;
+            Domain.Skills.ConcreteSkills.TimeDilation.EffectManager = _effectManager;
+            Domain.Skills.ConcreteSkills.ShadowRealm.EffectManager = _effectManager;
+            Domain.Skills.ConcreteSkills.ExecutionMark.EffectManager = _effectManager;
             
             // Register Event Handlers
             _playerKillHandler = new PlayerKillHandler(_xpService, _playerService, _masteryService, _inMatchEvolutionService, _botService);
