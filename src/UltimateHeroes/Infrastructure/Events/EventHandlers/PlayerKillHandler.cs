@@ -28,8 +28,15 @@ namespace UltimateHeroes.Infrastructure.Events.EventHandlers
             var player = _playerService.GetPlayer(eventData.KillerSteamId);
             if (player == null) return;
             
-            // Award XP
-            _xpService.AwardXp(eventData.KillerSteamId, XpSource.Kill);
+            // Anti-Exploit: Kill-Diminishing (gemäß LEVELING.md)
+            var victimSteamId = eventData.VictimSteamId;
+            player.KillTracking.RecordKill(victimSteamId);
+            var killMultiplier = player.KillTracking.GetKillXpMultiplier(victimSteamId);
+            
+            // Award XP mit Kill-Diminishing
+            var baseXp = Domain.Progression.XpSystem.XpPerKill;
+            var adjustedXp = baseXp * killMultiplier;
+            _xpService.AwardXp(eventData.KillerSteamId, XpSource.Kill, adjustedXp);
             
             if (eventData.IsHeadshot)
             {

@@ -5,8 +5,8 @@ namespace UltimateHeroes.Domain.Progression
     /// </summary>
     public class LevelSystem
     {
-        // Hero Level (1-20)
-        public const int MaxHeroLevel = 20;
+        // Hero Level (1-40) - Max Level für Prestige-Vorbereitung
+        public const int MaxHeroLevel = 40;
         
         // Skill Level (1-5)
         public const int MaxSkillLevel = 5;

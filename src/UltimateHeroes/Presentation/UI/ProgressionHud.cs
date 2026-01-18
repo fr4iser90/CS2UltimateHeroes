@@ -12,11 +12,13 @@ namespace UltimateHeroes.Presentation.UI
     {
         private readonly IXpService _xpService;
         private readonly IMasteryService? _masteryService;
+        private readonly IAccountService? _accountService;
         
-        public ProgressionHud(IXpService xpService, IMasteryService? masteryService = null)
+        public ProgressionHud(IXpService xpService, IMasteryService? masteryService = null, IAccountService? accountService = null)
         {
             _xpService = xpService;
             _masteryService = masteryService;
+            _accountService = accountService;
         }
         
         /// <summary>
@@ -39,7 +41,13 @@ namespace UltimateHeroes.Presentation.UI
             var xpPercent = (int)(xpProgress * 100);
             var currentXp = playerState.CurrentXp;
             var xpToNext = playerState.XpToNextLevel;
-            var level = playerState.HeroLevel;
+            var heroLevel = playerState.HeroLevel;
+            
+            // Account Level (wenn verfügbar)
+            var accountLevel = _accountService?.GetAccountLevelValue(playerState.SteamId) ?? 0;
+            var accountXpProgress = _accountService?.GetAccountXpProgress(playerState.SteamId) ?? 0f;
+            var accountXpPercent = (int)(accountXpProgress * 100);
+            var accountTitle = accountLevel > 0 ? Domain.Progression.AccountLevel.GetTitleForLevel(accountLevel) : "";
             
             return $@"
                 <div style='
@@ -55,9 +63,34 @@ namespace UltimateHeroes.Presentation.UI
                     z-index: 1000;
                     box-shadow: 0 4px 12px rgba(0,0,0,0.5);
                 '>
+                    {(accountLevel > 0 ? $@"
+                    <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;'>
+                        <div style='font-size: 14px; color: #FFD700; font-weight: bold;'>
+                            Account: Lv.{accountLevel} ({accountTitle})
+                        </div>
+                        <div style='font-size: 11px; color: #CCCCCC;'>
+                            {accountXpPercent}%
+                        </div>
+                    </div>
+                    <div style='
+                        width: 100%;
+                        height: 12px;
+                        background: rgba(100, 100, 100, 0.5);
+                        border-radius: 6px;
+                        overflow: hidden;
+                        margin-bottom: 8px;
+                    '>
+                        <div style='
+                            width: {accountXpPercent}%;
+                            height: 100%;
+                            background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%);
+                            transition: width 0.3s ease;
+                        '></div>
+                    </div>
+                    " : "")}
                     <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;'>
-                        <div style='font-size: 16px; color: #FFD700; font-weight: bold;'>
-                            Level {level}
+                        <div style='font-size: 16px; color: #4A90E2; font-weight: bold;'>
+                            Hero Level {heroLevel}
                         </div>
                         <div style='font-size: 12px; color: #CCCCCC;'>
                             {currentXp:F0} / {xpToNext:F0} XP ({xpPercent}%)

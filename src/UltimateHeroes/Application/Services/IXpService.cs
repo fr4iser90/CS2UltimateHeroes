@@ -17,6 +17,16 @@ namespace UltimateHeroes.Application.Services
         void CheckLevelUp(string steamId);
         void OnLevelUp(string steamId, int newLevel);
         
+        /// <summary>
+        /// Award Match Completion XP mit Modus-Multiplikator und Win Bonus (gemäß LEVELING.md)
+        /// </summary>
+        void AwardMatchCompletion(string steamId, Application.Services.GameMode gameMode, bool wonMatch);
+        
+        /// <summary>
+        /// Berechnet Match-XP mit Modus-Multiplikator und Win Bonus
+        /// </summary>
+        float CalculateMatchXp(float baseXp, Application.Services.GameMode gameMode, bool wonMatch);
+        
         List<XpHistory> GetXpHistory(string steamId, int limit = 50);
     }
 }

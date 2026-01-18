@@ -12,6 +12,8 @@ namespace UltimateHeroes.Domain.Progression
         RoundWin,
         FlashAssist,
         ClutchRound,
-        FirstBlood
+        FirstBlood,
+        MatchCompletion, // Neu: Match Completion XP (50-100)
+        WinBonus         // Neu: Win Bonus (Multiplikator, nicht direkt)
     }
 }

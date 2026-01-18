@@ -17,15 +17,19 @@ namespace UltimateHeroes.Presentation.UI
         private readonly IPlayerService _playerService;
         private readonly HashSet<int> _enabledPlayers = new();
         
+        private readonly IAccountService? _accountService;
+        
         public HudManager(
             ISkillService skillService,
             IXpService xpService,
             IPlayerService playerService,
             ICooldownManager cooldownManager,
-            IMasteryService? masteryService = null)
+            IMasteryService? masteryService = null,
+            IAccountService? accountService = null)
         {
+            _accountService = accountService;
             _skillHud = new SkillHud(skillService, cooldownManager);
-            _progressionHud = new ProgressionHud(xpService, masteryService);
+            _progressionHud = new ProgressionHud(xpService, masteryService, accountService);
             _playerService = playerService;
         }
         

@@ -15,15 +15,18 @@ namespace UltimateHeroes.Application.Services
         private readonly IPlayerRepository _playerRepository;
         private readonly IPlayerService _playerService;
         private readonly ITalentService? _talentService;
+        private readonly IAccountService? _accountService;
         
         public XpService(
             IPlayerRepository playerRepository,
             IPlayerService playerService,
-            ITalentService? talentService = null)
+            ITalentService? talentService = null,
+            IAccountService? accountService = null)
         {
             _playerRepository = playerRepository;
             _playerService = playerService;
             _talentService = talentService;
+            _accountService = accountService;
         }
         
         public void AwardXp(string steamId, XpSource source, float amount)
@@ -63,8 +66,33 @@ namespace UltimateHeroes.Application.Services
                 XpSource.FlashAssist => XpSystem.XpPerFlashAssist,
                 XpSource.ClutchRound => 50f,
                 XpSource.FirstBlood => 15f,
+                XpSource.MatchCompletion => XpSystem.XpPerMatchCompletion,
+                XpSource.WinBonus => 0f, // Win Bonus ist Multiplikator, nicht direkter XP
                 _ => 0f
             };
+        }
+        
+        /// <summary>
+        /// Berechnet Match-XP mit Modus-Multiplikator und Win Bonus
+        /// </summary>
+        public float CalculateMatchXp(float baseXp, Application.Services.GameMode gameMode, bool wonMatch)
+        {
+            // Modus-Multiplikator
+            float multiplier = gameMode switch
+            {
+                Application.Services.GameMode.Casual => XpSystem.CasualMultiplier,
+                Application.Services.GameMode.Competitive => XpSystem.RankedMultiplier,
+                Application.Services.GameMode.Deathmatch => XpSystem.DeathmatchMultiplier,
+                _ => XpSystem.RankedMultiplier // Default: Ranked
+            };
+            
+            // Win Bonus
+            if (wonMatch)
+            {
+                multiplier *= (1f + XpSystem.WinBonusMultiplier);
+            }
+            
+            return baseXp * multiplier;
         }
         
         private float GetRoleInfluenceBonus(RoleInfluence role, XpSource source)
@@ -126,19 +154,62 @@ namespace UltimateHeroes.Application.Services
             player.HeroLevel = newLevel;
             player.XpToNextLevel = XpSystem.GetXpForLevel(newLevel);
             
+            // Award Account XP für Hero Level Up
+            if (_accountService != null)
+            {
+                var accountXp = _accountService.CalculateHeroLevelUpAccountXp(newLevel);
+                if (accountXp > 0f)
+                {
+                    _accountService.AwardAccountXp(steamId, Domain.Progression.AccountXpSource.HeroLevelUp, accountXp);
+                }
+            }
+            
+            // Check if Max Level reached (Prestige-Vorbereitung)
+            if (newLevel >= LevelSystem.MaxHeroLevel)
+            {
+                var playerController = player.PlayerController;
+                if (playerController != null && playerController.IsValid)
+                {
+                    playerController.PrintToChat($" {ChatColors.Gold}[Ultimate Heroes]{ChatColors.Default} Max Level {LevelSystem.MaxHeroLevel} reached! Prestige available!");
+                }
+            }
+            
             // Award Talent Points
             var talentPoints = newLevel - oldLevel;
             _talentService?.AwardTalentPoints(steamId, talentPoints);
             
             // Notify Player
-            var playerController = player.PlayerController;
-            if (playerController != null && playerController.IsValid)
+            var playerController2 = player.PlayerController;
+            if (playerController2 != null && playerController2.IsValid)
             {
-                playerController.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} Level Up! You are now Level {newLevel}!");
+                playerController2.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} Level Up! You are now Level {newLevel}!");
             }
             
             // Save Player
             _playerService.SavePlayer(player);
+        }
+        
+        /// <summary>
+        /// Award Match Completion XP
+        /// </summary>
+        public void AwardMatchCompletion(string steamId, Application.Services.GameMode gameMode, bool wonMatch)
+        {
+            var player = _playerService.GetPlayer(steamId);
+            if (player == null) return;
+            
+            // Base XP: Match Completion
+            var baseXp = XpSystem.XpPerMatchCompletion;
+            
+            // Apply Modus-Multiplikator und Win Bonus
+            var finalXp = CalculateMatchXp(baseXp, gameMode, wonMatch);
+            
+            AwardXp(steamId, XpSource.MatchCompletion, finalXp);
+            
+            // Award Account XP für Match Completion
+            _accountService?.AwardAccountXp(steamId, Domain.Progression.AccountXpSource.MatchCompletion);
+            
+            // Reset Kill Tracking für neues Match
+            player.KillTracking.ResetForNewMatch();
         }
         
         public List<XpHistory> GetXpHistory(string steamId, int limit = 50)

@@ -40,6 +40,24 @@ namespace UltimateHeroes.Domain.Players
         public int Assists { get; set; } = 0;
         public int Headshots { get; set; } = 0;
         
+        // Kill Tracking für Anti-Exploit
+        private Domain.Progression.KillTracking? _killTracking;
+        public Domain.Progression.KillTracking KillTracking
+        {
+            get
+            {
+                if (_killTracking == null)
+                {
+                    _killTracking = new Domain.Progression.KillTracking { SteamId = SteamId };
+                }
+                return _killTracking;
+            }
+            set => _killTracking = value;
+        }
+        
+        // Prestige
+        public Domain.Progression.Prestige? Prestige { get; set; } = null;
+        
         // Role Influence
         public RoleInfluence CurrentRole { get; set; } = RoleInfluence.None;
         

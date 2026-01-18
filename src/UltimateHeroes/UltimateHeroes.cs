@@ -112,6 +112,7 @@ namespace UltimateHeroes
         private Application.Services.IBuildIntegrityService? _buildIntegrityService;
         private Application.Services.IBotService? _botService;
         private Application.Services.IShopService? _shopService;
+        private Application.Services.IAccountService? _accountService;
         
         // Event Handlers
         private PlayerKillHandler? _playerKillHandler;
@@ -137,6 +138,7 @@ namespace UltimateHeroes
             _buildRepository = new BuildRepository(_database);
             var talentRepository = new Infrastructure.Database.Repositories.TalentRepository(_database);
             var masteryRepository = new Infrastructure.Database.Repositories.MasteryRepository(_database);
+            var accountRepository = new Infrastructure.Database.Repositories.AccountRepository(_database);
             
             // Initialize Infrastructure
             _cooldownManager = new CooldownManager();
@@ -158,9 +160,12 @@ namespace UltimateHeroes
             // Initialize ShopService
             _shopService = new Application.Services.ShopService();
             
+            // Initialize AccountService
+            _accountService = new Application.Services.AccountService(accountRepository);
+            
             var buildValidator = new BuildValidator();
             _buildService = new BuildService(_buildRepository, _heroService, _skillService, buildValidator, _playerService, _talentService);
-            _xpService = new XpService(_playerRepository, _playerService, _talentService);
+            _xpService = new XpService(_playerRepository, _playerService, _talentService, _accountService);
             _inMatchEvolutionService = new Application.Services.InMatchEvolutionService(_playerService);
             _roleInfluenceService = new Application.Services.RoleInfluenceService(_playerService);
             _buildIntegrityService = new Application.Services.BuildIntegrityService(_skillService);
@@ -211,7 +216,8 @@ namespace UltimateHeroes
                 _xpService,
                 _playerService,
                 _cooldownManager,
-                _masteryService
+                _masteryService,
+                _accountService
             );
             
             // Register CounterStrikeSharp Events
@@ -250,6 +256,22 @@ namespace UltimateHeroes
         private void OnMapStart(string mapName)
         {
             Console.WriteLine($"[UltimateHeroes] Map started: {mapName}");
+            
+            // Award Match Completion XP für alle Spieler vom vorherigen Match
+            // (wird aufgerufen wenn neue Map startet = vorheriges Match endete)
+            var gameMode = Application.Services.GameModeDetector.DetectCurrentMode();
+            var allPlayers = Utilities.GetPlayers();
+            foreach (var player in allPlayers)
+            {
+                if (player == null || !player.IsValid || player.AuthorizedSteamID == null) continue;
+                var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+                // Note: Win/Loss wird hier nicht erkannt, daher false
+                // TODO: Track match result before map change
+                _xpService?.AwardMatchCompletion(steamId, gameMode, false);
+            }
+            
+            // Reset Shop Items für alle Spieler (neues Match)
+            _shopService?.ResetAllPlayersForNewMatch();
             
             // Start effect tick timer (every 0.5 seconds)
             AddTimer(0.5f, () =>
@@ -416,14 +438,27 @@ namespace UltimateHeroes
         {
             var winner = @event.Winner;
             var players = Utilities.GetPlayers();
+            var gameMode = Application.Services.GameModeDetector.DetectCurrentMode();
             
             foreach (var player in players)
             {
                 if (player == null || !player.IsValid || player.AuthorizedSteamID == null) continue;
                 var steamId = player.AuthorizedSteamID.SteamId64.ToString();
                 bool won = player.TeamNum == winner;
+                
+                // In-Match Evolution
                 _inMatchEvolutionService?.OnRoundEnd(steamId, won);
+                
+                // Award Round Win XP (wenn gewonnen)
+                if (won)
+                {
+                    _xpService?.AwardXp(steamId, Domain.Progression.XpSource.RoundWin);
+                }
             }
+            
+            // Check if match ended (last round)
+            // Note: In CS2, we need to check if this is the final round
+            // For now, we'll award Match Completion on map change or explicit match end event
             
             return HookResult.Continue;
         }

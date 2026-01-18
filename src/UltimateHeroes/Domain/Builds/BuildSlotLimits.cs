@@ -27,6 +27,9 @@ namespace UltimateHeroes.Domain.Builds
         
         /// <summary>
         /// Berechnet Base Slots basierend auf Level
+        /// Level 1-10: Grundmechaniken (3 Active, 1 Ultimate, 2 Passive)
+        /// Level 11-25: Build-Identität (4 Active bei Level 10)
+        /// Level 26-40: Feinschliff (2 Ultimate bei Level 20, 3 Passive bei Level 30)
         /// </summary>
         public static BuildSlotLimits CalculateBaseSlots(int heroLevel)
         {
@@ -37,23 +40,26 @@ namespace UltimateHeroes.Domain.Builds
                 BasePassiveSlots = 2
             };
             
-            // Level 10: +1 Active Slot
+            // Level 10: +1 Active Slot (Build-Identität Phase)
             if (heroLevel >= 10)
             {
                 limits.BaseActiveSlots = 4;
             }
             
-            // Level 20: +1 Ultimate Slot
+            // Level 20: +1 Ultimate Slot (Feinschliff Phase)
             if (heroLevel >= 20)
             {
                 limits.BaseUltimateSlots = 2;
             }
             
-            // Level 30: +1 Passive Slot
+            // Level 30: +1 Passive Slot (Feinschliff Phase)
             if (heroLevel >= 30)
             {
                 limits.BasePassiveSlots = 3;
             }
+            
+            // Level 40: Max erreicht, keine weiteren Base Slots
+            // (Prestige-Vorbereitung, aber keine neue Power)
             
             return limits;
         }

@@ -79,8 +79,21 @@ CREATE TABLE IF NOT EXISTS skill_mastery (
     FOREIGN KEY (steamid) REFERENCES players(steamid)
 );
 
+-- Account Level Table (Meta-Progression über alle Heroes)
+CREATE TABLE IF NOT EXISTS account_levels (
+    steamid TEXT PRIMARY KEY,
+    account_level INTEGER DEFAULT 1,
+    account_xp REAL DEFAULT 0,
+    xp_to_next_level REAL DEFAULT 100,
+    unlocked_titles TEXT DEFAULT '',
+    unlocked_cosmetics TEXT DEFAULT '',
+    last_updated TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (steamid) REFERENCES players(steamid)
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_builds_steamid ON builds(steamid);
 CREATE INDEX IF NOT EXISTS idx_builds_active ON builds(steamid, is_active) WHERE is_active = 1;
 CREATE INDEX IF NOT EXISTS idx_xp_history_steamid ON xp_history(steamid);
 CREATE INDEX IF NOT EXISTS idx_xp_history_timestamp ON xp_history(timestamp);
+CREATE INDEX IF NOT EXISTS idx_account_levels_level ON account_levels(account_level);
