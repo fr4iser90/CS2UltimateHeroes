@@ -71,6 +71,23 @@ namespace UltimateHeroes.Infrastructure.Database.Repositories
                 );
             }
             
+            // Get current total from database (if exists)
+            var currentTotal = connection.QueryFirstOrDefault<int?>(
+                "SELECT total_earned FROM talent_points WHERE steamid = @SteamId",
+                new { SteamId = playerTalents.SteamId }
+            );
+            
+            // Calculate new total (only increase, never decrease)
+            var newTotal = currentTotal ?? 0;
+            var pointsSpent = (currentTotal ?? 0) - (playerTalents.AvailableTalentPoints);
+            var newAvailable = playerTalents.AvailableTalentPoints;
+            
+            // If available points increased, it means new points were earned
+            if (newAvailable > (currentTotal ?? 0) - pointsSpent)
+            {
+                newTotal = newAvailable + pointsSpent;
+            }
+            
             // Update talent points
             connection.Execute(
                 @"INSERT OR REPLACE INTO talent_points (steamid, available_points, total_earned) 
@@ -78,8 +95,8 @@ namespace UltimateHeroes.Infrastructure.Database.Repositories
                 new 
                 { 
                     SteamId = playerTalents.SteamId, 
-                    Available = playerTalents.AvailableTalentPoints,
-                    Total = playerTalents.AvailableTalentPoints // TODO: Track total separately
+                    Available = newAvailable,
+                    Total = newTotal
                 }
             );
         }

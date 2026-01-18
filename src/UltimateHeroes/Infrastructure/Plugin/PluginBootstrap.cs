@@ -54,14 +54,7 @@ namespace UltimateHeroes.Infrastructure.Plugin
         public Infrastructure.Events.EventHandlers.PlayerHurtHandler? PlayerHurtHandler { get; private set; }
         
         // Menus
-        public HeroMenu? HeroMenu { get; private set; }
-        public BuildMenu? BuildMenu { get; private set; }
-        public SkillMenu? SkillMenu { get; private set; }
-        public TalentMenu? TalentMenu { get; private set; }
-        public ShopMenu? ShopMenu { get; private set; }
-        
-        // HUD
-        public HudManager? HudManager { get; private set; }
+        // Menus and HUD are initialized in Presentation Layer (UltimateHeroes.cs)
         
         public PluginBootstrap(BasePlugin plugin, string moduleDirectory)
         {
@@ -115,7 +108,7 @@ namespace UltimateHeroes.Infrastructure.Plugin
             // Initialize WeaponModifier
             WeaponModifier = new Infrastructure.Weapons.WeaponModifier(BuffService);
             
-            var buildValidator = new Application.BuildValidator();
+            var buildValidator = new Domain.Builds.Validation.BuildValidator();
             BuildService = new BuildService(BuildRepository, HeroService, SkillService, buildValidator, PlayerService, TalentService);
             XpService = new XpService(PlayerRepository, PlayerService, TalentService, AccountService);
             InMatchEvolutionService = new InMatchEvolutionService(PlayerService);
@@ -134,32 +127,17 @@ namespace UltimateHeroes.Infrastructure.Plugin
             SetEffectManagerForSkillsViaReflection();
             SetSpawnServiceForSkillsViaReflection();
             
+            // Initialize Assist Tracking
+            var assistTracking = new Infrastructure.Events.AssistTracking();
+            
             // Register Event Handlers
             PlayerKillHandler = new Infrastructure.Events.EventHandlers.PlayerKillHandler(
-                XpService, PlayerService, MasteryService, InMatchEvolutionService, BotService);
-            PlayerHurtHandler = new Infrastructure.Events.EventHandlers.PlayerHurtHandler(PlayerService);
+                XpService, PlayerService, assistTracking, MasteryService, InMatchEvolutionService, BotService, BuffService, SkillService);
+            PlayerHurtHandler = new Infrastructure.Events.EventHandlers.PlayerHurtHandler(PlayerService, assistTracking);
             EventSystem.RegisterHandler<Infrastructure.Events.EventHandlers.PlayerKillEvent>(PlayerKillHandler);
             EventSystem.RegisterHandler<Infrastructure.Events.EventHandlers.PlayerHurtEvent>(PlayerHurtHandler);
             
-            // Initialize Menu System
-            MenuAPI.Load(_plugin);
-            
-            // Initialize Menus
-            HeroMenu = new HeroMenu(HeroService, PlayerService);
-            BuildMenu = new BuildMenu(BuildService, PlayerService);
-            SkillMenu = new SkillMenu(SkillService, PlayerService, CooldownManager);
-            TalentMenu = new TalentMenu(TalentService, PlayerService);
-            ShopMenu = new ShopMenu(ShopService, PlayerService);
-            
-            // Initialize HUD
-            HudManager = new HudManager(
-                SkillService,
-                XpService,
-                PlayerService,
-                CooldownManager,
-                MasteryService,
-                AccountService
-            );
+            // Note: Menu/UI Initialization is done in UltimateHeroes.cs (Presentation Layer)
         }
         
         private void SetEffectManagerForSkillsViaReflection()

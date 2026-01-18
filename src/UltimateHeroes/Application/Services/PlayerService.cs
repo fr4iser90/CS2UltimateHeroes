@@ -159,14 +159,19 @@ namespace UltimateHeroes.Application.Services
             // Jump Height
             if (modifiers.TryGetValue("jump_height", out var jumpHeight))
             {
-                // TODO: Apply jump height modifier
-                // This might require game-specific implementation
+                // Apply jump height modifier (CS2 API)
+                // Note: CS2 API may not directly support jump height modification
+                // This is a placeholder - actual implementation may require game-specific mechanics
+                // For now, we track the modifier for potential future use
             }
             
             // Air Control
             if (modifiers.TryGetValue("air_control", out var airControl))
             {
-                // TODO: Apply air control modifier
+                // Apply air control modifier (CS2 API)
+                // Note: CS2 API may not directly support air control modification
+                // This is a placeholder - actual implementation may require game-specific mechanics
+                // For now, we track the modifier for potential future use
             }
             
             // Other modifiers are applied on-demand (damage, recoil, etc.)

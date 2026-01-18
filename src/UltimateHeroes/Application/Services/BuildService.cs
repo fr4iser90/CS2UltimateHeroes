@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CounterStrikeSharp.API.Core;
-using UltimateHeroes.Application;
+using UltimateHeroes.Domain.Builds.Validation;
 using UltimateHeroes.Domain.Builds;
 using UltimateHeroes.Domain.Skills;
 using UltimateHeroes.Infrastructure.Database.Repositories;

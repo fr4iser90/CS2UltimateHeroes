@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UltimateHeroes.Application;
+using UltimateHeroes.Domain.Builds.Validation;
 using UltimateHeroes.Domain.Heroes;
 using UltimateHeroes.Domain.Skills;
 
@@ -37,10 +37,10 @@ namespace UltimateHeroes.Domain.Builds
         /// <summary>
         /// Validiert den Build mit Hero Core und Skills (separate Slots)
         /// </summary>
-        public ValidationResult Validate(IHero heroCore, List<ISkill> activeSkills, ISkill? ultimateSkill, List<ISkill> passiveSkills)
+        public ValidationResult Validate(IHero heroCore, List<ISkill> activeSkills, ISkill? ultimateSkill, List<ISkill> passiveSkills, BuildSlotLimits slotLimits)
         {
             var validator = new BuildValidator();
-            var result = validator.ValidateBuild(heroCore, activeSkills, ultimateSkill, passiveSkills);
+            var result = validator.ValidateBuild(heroCore, activeSkills, ultimateSkill, passiveSkills, slotLimits);
             
             IsValid = result.IsValid;
             ValidationErrors = result.Errors;

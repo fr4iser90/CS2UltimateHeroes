@@ -16,10 +16,14 @@ namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return;
             
-            // TODO: Disable movement
-            // player.PlayerPawn.Value.MovementServices?.Disable();
+            // Disable movement (CS2 API)
+            var pawn = player.PlayerPawn.Value;
+            if (pawn.MovementServices != null)
+            {
+                // Set movement speed to 0 (effectively disabling movement)
+                pawn.MovementServices.MoveSpeedFactor = 0f;
+            }
             
-            // Placeholder: Notify player
             player.PrintToChat($" {ChatColors.Red}[Stunned]{ChatColors.Default} You are stunned for {Duration:F1}s!");
         }
         
@@ -32,10 +36,14 @@ namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return;
             
-            // TODO: Re-enable movement
-            // player.PlayerPawn.Value.MovementServices?.Enable();
+            // Re-enable movement (CS2 API)
+            var pawn = player.PlayerPawn.Value;
+            if (pawn.MovementServices != null)
+            {
+                // Restore normal movement speed
+                pawn.MovementServices.MoveSpeedFactor = 1.0f;
+            }
             
-            // Placeholder: Notify player
             player.PrintToChat($" {ChatColors.Green}[Stun]{ChatColors.Default} Stun effect removed!");
         }
         

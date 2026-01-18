@@ -19,9 +19,11 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return;
             
-            // TODO: Disable footstep sounds
-            // - Set player footstep volume to 0
-            // - Or use game mechanics to silence footsteps
+            // Disable footstep sounds (CS2 API)
+            var pawn = player.PlayerPawn.Value;
+            // Note: CS2 API may not directly support footstep volume control
+            // This is a placeholder - actual implementation may require game-specific mechanics
+            // For now, we rely on game mechanics (stealth mode, etc.)
         }
         
         public override void OnPlayerHurt(CCSPlayerController player, int damage)

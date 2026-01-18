@@ -3,7 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Infrastructure.Effects;
 using UltimateHeroes.Infrastructure.Effects.ConcreteEffects;
-using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Application.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {

@@ -20,6 +20,7 @@ namespace UltimateHeroes.Application.EventHandlers
         private readonly IBotService _botService;
         private readonly IInMatchEvolutionService _inMatchEvolutionService;
         private readonly BasePlugin _plugin;
+        private readonly PluginConfiguration? _config;
         
         public MapEventHandler(
             IXpService xpService,
@@ -30,7 +31,8 @@ namespace UltimateHeroes.Application.EventHandlers
             HudManager hudManager,
             IBotService botService,
             IInMatchEvolutionService inMatchEvolutionService,
-            BasePlugin plugin)
+            BasePlugin plugin,
+            PluginConfiguration? config = null)
         {
             _xpService = xpService;
             _shopService = shopService;
@@ -41,6 +43,7 @@ namespace UltimateHeroes.Application.EventHandlers
             _botService = botService;
             _inMatchEvolutionService = inMatchEvolutionService;
             _plugin = plugin;
+            _config = config;
         }
         
         public void OnMapStart(string mapName)
@@ -79,8 +82,8 @@ namespace UltimateHeroes.Application.EventHandlers
             }, TimerFlags.REPEAT);
             
             // Start Bot Build Change timer
-            // TODO: Config injection
-            _plugin.AddTimer(GameConstants.BotBuildChangeInterval, () =>
+            var botBuildChangeInterval = _config?.BotSettings?.BuildChangeInterval ?? GameConstants.BotBuildChangeInterval;
+            _plugin.AddTimer(botBuildChangeInterval, () =>
             {
                 var players = Utilities.GetPlayers();
                 foreach (var player in players)

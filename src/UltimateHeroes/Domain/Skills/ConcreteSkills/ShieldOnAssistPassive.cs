@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Application.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -31,10 +31,26 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
         
         public override void OnPlayerKill(CCSPlayerController player, CCSPlayerController victim)
         {
-            // This is called on kill, but we want assists
-            // Note: Assists are tracked separately in the event system
-            // For now, this passive would need to be triggered from the event handler
-            // This is a placeholder - actual implementation would require assist tracking
+            // This is called when player gets an assist (not a kill)
+            // The event handler calls this for assists
+            if (player == null || !player.IsValid) return;
+            
+            // Calculate shield amount based on level
+            var shieldAmount = BaseShieldAmount + (CurrentLevel * 5); // 10-30 shield
+            
+            // Apply shield via BuffService
+            var buffService = Infrastructure.Helpers.BuffServiceHelper.GetBuffService();
+            if (buffService != null && player.AuthorizedSteamID != null)
+            {
+                var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+                var damageReduction = 0.1f + (CurrentLevel * 0.02f); // 10% - 18% damage reduction
+                buffService.ApplyShield(steamId, damageReduction, 10f); // 10 second shield
+            }
+            
+            // Also add armor directly
+            GameHelpers.AddArmor(player, shieldAmount);
+            
+            player.PrintToChat($" {ChatColors.Blue}[Shield on Assist]{ChatColors.Default} +{shieldAmount} armor + shield!");
         }
     }
 }

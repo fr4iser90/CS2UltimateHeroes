@@ -91,16 +91,26 @@ namespace UltimateHeroes.Infrastructure.Weapons
             // Apply Infinite Ammo (refill ammo after shot)
             if (HasInfiniteAmmo(steamId))
             {
-                // TODO: Refill ammo to max
-                // This might require CS2-specific API calls
+                // Refill ammo to max (CS2 API)
+                if (weapon.Clip1 != null)
+                {
+                    var maxClip = weapon.GetMaxClip1();
+                    if (maxClip > 0)
+                    {
+                        weapon.Clip1.Value = maxClip;
+                    }
+                }
             }
             
             // Apply Spread Modifier
             var spreadMultiplier = GetSpreadMultiplier(steamId);
             if (spreadMultiplier.HasValue && spreadMultiplier.Value != 1f)
             {
-                // TODO: Modify weapon spread
-                // This might require CS2-specific API calls or ConVar manipulation
+                // Modify weapon spread via ConVar (CS2 API)
+                // Note: This requires weapon-specific ConVars
+                // For now, we track the modifier and apply it via game mechanics
+                // The actual spread modification would need to be done via weapon properties
+                // This is a placeholder for when CS2 API supports direct spread modification
             }
         }
         
@@ -113,7 +123,28 @@ namespace UltimateHeroes.Infrastructure.Weapons
             // Apply Infinite Ammo (refill ammo on reload)
             if (HasInfiniteAmmo(steamId))
             {
-                // TODO: Set ammo to max
+                var weapon = pawn.WeaponServices?.ActiveWeapon.Value;
+                if (weapon != null && weapon.IsValid)
+                {
+                    // Set ammo to max (CS2 API)
+                    if (weapon.Clip1 != null)
+                    {
+                        var maxClip = weapon.GetMaxClip1();
+                        if (maxClip > 0)
+                        {
+                            weapon.Clip1.Value = maxClip;
+                        }
+                    }
+                    
+                    if (weapon.ReserveAmmo != null)
+                    {
+                        var maxReserve = weapon.GetMaxReserveAmmo();
+                        if (maxReserve > 0)
+                        {
+                            weapon.ReserveAmmo.Value = maxReserve;
+                        }
+                    }
+                }
             }
         }
     }

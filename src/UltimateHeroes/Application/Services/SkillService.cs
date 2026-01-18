@@ -117,6 +117,40 @@ namespace UltimateHeroes.Application.Services
                         cooldown *= (1f - reduction);
                     }
                     
+                    // Apply Utility CDR Passive (if skill has Utility tag)
+                    if (skill.Tags.Contains(SkillTag.Utility))
+                    {
+                        foreach (var passiveSkill in playerState.ActiveSkills)
+                        {
+                            if (passiveSkill is Domain.Skills.ConcreteSkills.UtilityCooldownReductionPassive utilityCdr)
+                            {
+                                var cdrReduction = utilityCdr.GetCooldownReduction();
+                                cooldown *= (1f - cdrReduction);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Apply Overclock Passive (HP Cost + Power Bonus)
+                    foreach (var passiveSkill in playerState.ActiveSkills)
+                    {
+                        if (passiveSkill is Domain.Skills.ConcreteSkills.OverclockPassive overclock)
+                        {
+                            // Apply HP Cost
+                            var hpCost = overclock.GetHpCost();
+                            if (player.PlayerPawn.Value?.Health != null)
+                            {
+                                var currentHealth = player.PlayerPawn.Value.Health.Value;
+                                var newHealth = System.Math.Max(currentHealth - hpCost, 1);
+                                player.PlayerPawn.Value.Health.Value = newHealth;
+                            }
+                            
+                            // Power Bonus is applied per-skill (skills need to check for Overclock)
+                            // This is handled by individual skills that support power bonuses
+                            break;
+                        }
+                    }
+                    
                     _cooldownManager.SetCooldown(steamId, skillId, cooldown);
                 }
             }
@@ -138,6 +172,16 @@ namespace UltimateHeroes.Application.Services
         public bool IsSkillReady(string steamId, string skillId)
         {
             return _cooldownManager.IsReady(steamId, skillId);
+        }
+        
+        public void ReduceCooldown(string steamId, string skillId, float reductionPercent)
+        {
+            var currentCooldown = GetSkillCooldown(steamId, skillId);
+            if (currentCooldown > 0f)
+            {
+                var newCooldown = currentCooldown * (1f - reductionPercent);
+                _cooldownManager.SetCooldown(steamId, skillId, newCooldown);
+            }
         }
     }
 }

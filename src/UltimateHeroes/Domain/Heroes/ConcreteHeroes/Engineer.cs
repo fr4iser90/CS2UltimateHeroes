@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UltimateHeroes.Domain.Skills;
+using UltimateHeroes.Domain.Skills.ConcreteSkills;
 
 namespace UltimateHeroes.Domain.Heroes.ConcreteHeroes
 {
@@ -22,7 +23,8 @@ namespace UltimateHeroes.Domain.Heroes.ConcreteHeroes
         public Engineer()
         {
             // Initialize Passive Skills
-            // TODO: Add MiniSentryPassive and UtilityCooldownReductionPassive later
+            _passiveSkills.Add(new MiniSentryPassive());
+            _passiveSkills.Add(new UtilityCooldownReductionPassive());
             
             // Initialize Hero Identity
             Identity = new HeroIdentity

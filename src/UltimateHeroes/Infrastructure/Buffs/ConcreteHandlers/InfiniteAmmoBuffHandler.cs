@@ -30,8 +30,25 @@ namespace UltimateHeroes.Infrastructure.Buffs.ConcreteHandlers
             var weapon = player.PlayerPawn.Value.WeaponServices?.ActiveWeapon.Value;
             if (weapon != null && weapon.IsValid)
             {
-                // TODO: Set ammo to max (requires CS2 API)
-                // This would be handled by WeaponModifier system
+                // Set ammo to max (CS2 API)
+                if (weapon.Clip1 != null)
+                {
+                    var maxClip = weapon.GetMaxClip1();
+                    if (maxClip > 0)
+                    {
+                        weapon.Clip1.Value = maxClip;
+                    }
+                }
+                
+                // Also refill reserve ammo
+                if (weapon.ReserveAmmo != null)
+                {
+                    var maxReserve = weapon.GetMaxReserveAmmo();
+                    if (maxReserve > 0)
+                    {
+                        weapon.ReserveAmmo.Value = maxReserve;
+                    }
+                }
             }
         }
     }

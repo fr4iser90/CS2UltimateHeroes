@@ -89,7 +89,8 @@ namespace UltimateHeroes
                 _bootstrap.HudManager!,
                 _bootstrap.BotService!,
                 _bootstrap.InMatchEvolutionService!,
-                this
+                this,
+                Config
             );
             
             _playerHurtEventHandler = new PlayerHurtEventHandler(_bootstrap.EventSystem!);

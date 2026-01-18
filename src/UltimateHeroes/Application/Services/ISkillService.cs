@@ -25,5 +25,6 @@ namespace UltimateHeroes.Application.Services
         float GetSkillCooldown(string steamId, string skillId);
         bool IsSkillReady(string steamId, string skillId);
         void TrackSkillDamage(string steamId, string skillId, float damage);
+        void ReduceCooldown(string steamId, string skillId, float reductionPercent);
     }
 }

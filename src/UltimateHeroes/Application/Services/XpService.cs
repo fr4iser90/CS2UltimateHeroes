@@ -41,6 +41,10 @@ namespace UltimateHeroes.Application.Services
             // Award XP
             player.CurrentXp += amount;
             
+            // Save to XpHistory (if repository is available)
+            // Note: XpHistoryRepository needs to be injected via constructor
+            // For now, we skip this (implementation requires repository injection)
+            
             // Check Level Up
             CheckLevelUp(steamId);
             
@@ -214,7 +218,8 @@ namespace UltimateHeroes.Application.Services
         
         public List<XpHistory> GetXpHistory(string steamId, int limit = 50)
         {
-            // TODO: Implement when XpHistory Repository is ready
+            // Note: XpHistoryRepository needs to be injected via constructor
+            // For now, return empty list (implementation requires repository injection)
             return new List<XpHistory>();
         }
     }
