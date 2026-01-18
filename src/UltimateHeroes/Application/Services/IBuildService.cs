@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CounterStrikeSharp.API.Core;
 using UltimateHeroes.Application;
@@ -10,7 +11,11 @@ namespace UltimateHeroes.Application.Services
     /// </summary>
     public interface IBuildService
     {
-        Build CreateBuild(string steamId, int buildSlot, string heroId, List<string> skillIds, string buildName);
+        Build CreateBuild(string steamId, int buildSlot, string heroId, 
+            List<string> activeSkillIds, string? ultimateSkillId, List<string> passiveSkillIds, string buildName);
+        ValidationResult ValidateBuild(string heroId, 
+            List<string> activeSkillIds, string? ultimateSkillId, List<string> passiveSkillIds);
+        
         Build? GetBuild(string steamId, int buildSlot);
         List<Build> GetPlayerBuilds(string steamId);
         void SaveBuild(Build build);
@@ -18,8 +23,6 @@ namespace UltimateHeroes.Application.Services
         
         void ActivateBuild(string steamId, int buildSlot, CCSPlayerController player);
         Build? GetActiveBuild(string steamId);
-        
-        ValidationResult ValidateBuild(string heroId, List<string> skillIds);
         
         List<int> GetUnlockedSlots(string steamId);
         bool IsSlotUnlocked(string steamId, int slot);

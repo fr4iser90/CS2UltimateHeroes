@@ -121,6 +121,25 @@ namespace UltimateHeroes.Domain.Talents
                             { "accuracy_bonus", 0.05f } // +5% per level
                         }
                     }
+                },
+                new TalentNode
+                {
+                    Id = "combat_extra_active_slot",
+                    DisplayName = "Extra Active Slot",
+                    Description = "Unlocks an additional active skill slot",
+                    TreeType = TalentTreeType.Combat,
+                    Row = 3,
+                    Column = 2,
+                    MaxLevel = 1,
+                    Prerequisites = new List<string> { "combat_damage_per_kill", "combat_reload_speed" },
+                    Effect = new TalentEffect
+                    {
+                        Type = TalentEffectType.ExtraActiveSlot,
+                        Parameters = new Dictionary<string, float>
+                        {
+                            { "extra_active_slot", 1f } // +1 Active Slot
+                        }
+                    }
                 }
             };
         }
@@ -180,6 +199,44 @@ namespace UltimateHeroes.Domain.Talents
                         Parameters = new Dictionary<string, float>
                         {
                             { "defuse_speed", 0.10f } // +10% per level
+                        }
+                    }
+                },
+                new TalentNode
+                {
+                    Id = "utility_dual_ultimate",
+                    DisplayName = "Dual Ultimate",
+                    Description = "Unlocks a second ultimate skill slot",
+                    TreeType = TalentTreeType.Utility,
+                    Row = 2,
+                    Column = 2,
+                    MaxLevel = 1,
+                    Prerequisites = new List<string> { "utility_faster_plant", "utility_defuse_speed" },
+                    Effect = new TalentEffect
+                    {
+                        Type = TalentEffectType.ExtraUltimateSlot,
+                        Parameters = new Dictionary<string, float>
+                        {
+                            { "extra_ultimate_slot", 1f } // +1 Ultimate Slot
+                        }
+                    }
+                },
+                new TalentNode
+                {
+                    Id = "utility_passive_master",
+                    DisplayName = "Passive Master",
+                    Description = "Unlocks an additional passive skill slot",
+                    TreeType = TalentTreeType.Utility,
+                    Row = 3,
+                    Column = 1,
+                    MaxLevel = 1,
+                    Prerequisites = new List<string> { "utility_extra_nade" },
+                    Effect = new TalentEffect
+                    {
+                        Type = TalentEffectType.ExtraPassiveSlot,
+                        Parameters = new Dictionary<string, float>
+                        {
+                            { "extra_passive_slot", 1f } // +1 Passive Slot
                         }
                     }
                 }

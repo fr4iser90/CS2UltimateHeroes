@@ -12,13 +12,15 @@ namespace UltimateHeroes.Infrastructure.Events.EventHandlers
         private readonly IPlayerService _playerService;
         private readonly IMasteryService? _masteryService;
         private readonly Application.Services.IInMatchEvolutionService? _inMatchEvolutionService;
+        private readonly Application.Services.IBotService? _botService;
         
-        public PlayerKillHandler(IXpService xpService, IPlayerService playerService, IMasteryService? masteryService = null, Application.Services.IInMatchEvolutionService? inMatchEvolutionService = null)
+        public PlayerKillHandler(IXpService xpService, IPlayerService playerService, IMasteryService? masteryService = null, Application.Services.IInMatchEvolutionService? inMatchEvolutionService = null, Application.Services.IBotService? botService = null)
         {
             _xpService = xpService;
             _playerService = playerService;
             _masteryService = masteryService;
             _inMatchEvolutionService = inMatchEvolutionService;
+            _botService = botService;
         }
         
         public void Handle(PlayerKillEvent eventData)
@@ -53,6 +55,27 @@ namespace UltimateHeroes.Infrastructure.Events.EventHandlers
             
             // Track death for victim
             _inMatchEvolutionService?.OnDeath(eventData.VictimSteamId);
+            
+            // Track bot stats
+            if (_botService != null && _botService.IsBot(eventData.KillerSteamId))
+            {
+                // Find which skill was used (simplified - track all active skills)
+                string? skillId = null;
+                foreach (var skill in player.ActiveSkills)
+                {
+                    if (skill.Type != SkillType.Passive)
+                    {
+                        skillId = skill.Id;
+                        break; // Use first active skill
+                    }
+                }
+                _botService.OnBotKill(eventData.KillerSteamId, skillId ?? "", 0f);
+            }
+            
+            if (_botService != null && _botService.IsBot(eventData.VictimSteamId))
+            {
+                _botService.OnBotDeath(eventData.VictimSteamId);
+            }
         }
     }
 }

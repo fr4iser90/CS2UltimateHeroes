@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UltimateHeroes.Domain.Builds;
 using UltimateHeroes.Domain.Talents;
 using UltimateHeroes.Infrastructure.Database.Repositories;
 
@@ -235,6 +236,49 @@ namespace UltimateHeroes.Application.Services
                     modifiers[key] = value;
                 }
             }
+        }
+        
+        public BuildSlotLimits CalculateSlotLimits(string steamId, int heroLevel)
+        {
+            // Start with base slots (level-based)
+            var limits = BuildSlotLimits.CalculateBaseSlots(heroLevel);
+            
+            // Add bonus slots from talents
+            var playerTalents = _talentRepository.GetPlayerTalents(steamId);
+            if (playerTalents == null) return limits;
+            
+            foreach (var tree in _talentTrees.Values)
+            {
+                foreach (var node in tree.Nodes)
+                {
+                    if (playerTalents.IsUnlocked(node.Id))
+                    {
+                        var level = playerTalents.GetTalentLevel(node.Id);
+                        
+                        switch (node.Effect.Type)
+                        {
+                            case TalentEffectType.ExtraActiveSlot:
+                                limits.BonusActiveSlots += (int)node.Effect.Parameters.GetValueOrDefault("extra_active_slot", 1f) * level;
+                                break;
+                                
+                            case TalentEffectType.ExtraUltimateSlot:
+                                limits.BonusUltimateSlots += (int)node.Effect.Parameters.GetValueOrDefault("extra_ultimate_slot", 1f) * level;
+                                break;
+                                
+                            case TalentEffectType.ExtraPassiveSlot:
+                                limits.BonusPassiveSlots += (int)node.Effect.Parameters.GetValueOrDefault("extra_passive_slot", 1f) * level;
+                                break;
+                        }
+                    }
+                }
+            }
+            
+            // Enforce max limits
+            limits.BonusActiveSlots = System.Math.Min(limits.BonusActiveSlots, BuildSlotLimits.MaxActiveSlots - limits.BaseActiveSlots);
+            limits.BonusUltimateSlots = System.Math.Min(limits.BonusUltimateSlots, BuildSlotLimits.MaxUltimateSlots - limits.BaseUltimateSlots);
+            limits.BonusPassiveSlots = System.Math.Min(limits.BonusPassiveSlots, BuildSlotLimits.MaxPassiveSlots - limits.BasePassiveSlots);
+            
+            return limits;
         }
     }
 }

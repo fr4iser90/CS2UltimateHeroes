@@ -18,7 +18,11 @@ namespace UltimateHeroes.Domain.Builds
         
         // Build Configuration
         public string HeroCoreId { get; set; } = string.Empty;
-        public List<string> SkillIds { get; set; } = new(); // Max 3 Skills
+        
+        // Separate Skill Slots
+        public List<string> ActiveSkillIds { get; set; } = new(); // Max 3 Active Skills
+        public string? UltimateSkillId { get; set; } = null; // Max 1 Ultimate Skill (optional)
+        public List<string> PassiveSkillIds { get; set; } = new(); // Max 2 Passive Skills
         
         // Metadata
         public string BuildName { get; set; } = string.Empty;
@@ -31,12 +35,12 @@ namespace UltimateHeroes.Domain.Builds
         public List<string> ValidationErrors { get; set; } = new();
         
         /// <summary>
-        /// Validiert den Build mit Hero Core und Skills
+        /// Validiert den Build mit Hero Core und Skills (separate Slots)
         /// </summary>
-        public ValidationResult Validate(IHero heroCore, List<ISkill> skills)
+        public ValidationResult Validate(IHero heroCore, List<ISkill> activeSkills, ISkill? ultimateSkill, List<ISkill> passiveSkills)
         {
             var validator = new BuildValidator();
-            var result = validator.ValidateBuild(heroCore, skills);
+            var result = validator.ValidateBuild(heroCore, activeSkills, ultimateSkill, passiveSkills);
             
             IsValid = result.IsValid;
             ValidationErrors = result.Errors;
@@ -61,12 +65,15 @@ namespace UltimateHeroes.Domain.Builds
         }
         
         /// <summary>
-        /// Berechnet den totalen Power Weight des Builds
+        /// Berechnet den totalen Power Weight des Builds (separate Slots)
         /// </summary>
-        public int GetPowerWeight(IHero heroCore, List<ISkill> skills)
+        public int GetPowerWeight(IHero heroCore, List<ISkill> activeSkills, ISkill? ultimateSkill, List<ISkill> passiveSkills)
         {
             if (heroCore == null) return 0;
-            return heroCore.PowerWeight + skills.Sum(s => s?.PowerWeight ?? 0);
+            return heroCore.PowerWeight + 
+                   activeSkills.Sum(s => s?.PowerWeight ?? 0) + 
+                   (ultimateSkill?.PowerWeight ?? 0) + 
+                   passiveSkills.Sum(s => s?.PowerWeight ?? 0);
         }
         
         /// <summary>

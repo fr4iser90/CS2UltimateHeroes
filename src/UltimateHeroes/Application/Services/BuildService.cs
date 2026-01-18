@@ -19,22 +19,26 @@ namespace UltimateHeroes.Application.Services
         private readonly ISkillService _skillService;
         private readonly BuildValidator _buildValidator;
         private readonly IPlayerService _playerService;
+        private readonly ITalentService? _talentService;
         
         public BuildService(
             IBuildRepository buildRepository,
             IHeroService heroService,
             ISkillService skillService,
             BuildValidator buildValidator,
-            IPlayerService playerService)
+            IPlayerService playerService,
+            ITalentService? talentService = null)
         {
             _buildRepository = buildRepository;
             _heroService = heroService;
             _skillService = skillService;
             _buildValidator = buildValidator;
             _playerService = playerService;
+            _talentService = talentService;
         }
         
-        public Build CreateBuild(string steamId, int buildSlot, string heroId, List<string> skillIds, string buildName)
+        public Build CreateBuild(string steamId, int buildSlot, string heroId, 
+            List<string> activeSkillIds, string? ultimateSkillId, List<string> passiveSkillIds, string buildName)
         {
             // Validate Hero
             var hero = _heroService.GetHero(heroId);
@@ -43,20 +47,48 @@ namespace UltimateHeroes.Application.Services
                 throw new ArgumentException($"Hero {heroId} not found");
             }
             
-            // Validate Skills
-            var skills = new List<ISkill>();
-            foreach (var skillId in skillIds)
+            // Validate Active Skills
+            var activeSkills = new List<ISkill>();
+            foreach (var skillId in activeSkillIds)
             {
                 var skill = _skillService.GetSkill(skillId);
                 if (skill == null)
                 {
-                    throw new ArgumentException($"Skill {skillId} not found");
+                    throw new ArgumentException($"Active Skill {skillId} not found");
                 }
-                skills.Add(skill);
+                activeSkills.Add(skill);
             }
             
-            // Validate Build
-            var validation = _buildValidator.ValidateBuild(hero, skills);
+            // Validate Ultimate Skill
+            ISkill? ultimateSkill = null;
+            if (!string.IsNullOrEmpty(ultimateSkillId))
+            {
+                ultimateSkill = _skillService.GetSkill(ultimateSkillId);
+                if (ultimateSkill == null)
+                {
+                    throw new ArgumentException($"Ultimate Skill {ultimateSkillId} not found");
+                }
+            }
+            
+            // Validate Passive Skills
+            var passiveSkills = new List<ISkill>();
+            foreach (var skillId in passiveSkillIds)
+            {
+                var skill = _skillService.GetSkill(skillId);
+                if (skill == null)
+                {
+                    throw new ArgumentException($"Passive Skill {skillId} not found");
+                }
+                passiveSkills.Add(skill);
+            }
+            
+            // Calculate slot limits (level + talents)
+            var player = _playerService.GetPlayer(steamId);
+            var heroLevel = player?.HeroLevel ?? 1;
+            var slotLimits = _talentService?.CalculateSlotLimits(steamId, heroLevel) ?? Domain.Builds.BuildSlotLimits.CalculateBaseSlots(heroLevel);
+            
+            // Validate Build with dynamic slot limits
+            var validation = _buildValidator.ValidateBuild(hero, activeSkills, ultimateSkill, passiveSkills, slotLimits);
             if (!validation.IsValid)
             {
                 throw new InvalidOperationException($"Build validation failed: {string.Join(", ", validation.Errors)}");
@@ -68,7 +100,9 @@ namespace UltimateHeroes.Application.Services
                 SteamId = steamId,
                 BuildSlot = buildSlot,
                 HeroCoreId = heroId,
-                SkillIds = skillIds,
+                ActiveSkillIds = activeSkillIds,
+                UltimateSkillId = ultimateSkillId,
+                PassiveSkillIds = passiveSkillIds,
                 BuildName = buildName,
                 IsActive = false,
                 CreatedAt = DateTime.UtcNow,
@@ -95,11 +129,18 @@ namespace UltimateHeroes.Application.Services
         {
             // Re-validate before saving
             var hero = _heroService.GetHero(build.HeroCoreId);
-            var skills = build.SkillIds.Select(id => _skillService.GetSkill(id)).Where(s => s != null).Cast<ISkill>().ToList();
-            
             if (hero != null)
             {
-                var validation = _buildValidator.ValidateBuild(hero, skills);
+                var activeSkills = build.ActiveSkillIds.Select(id => _skillService.GetSkill(id)).Where(s => s != null).Cast<ISkill>().ToList();
+                var ultimateSkill = !string.IsNullOrEmpty(build.UltimateSkillId) ? _skillService.GetSkill(build.UltimateSkillId) : null;
+                var passiveSkills = build.PassiveSkillIds.Select(id => _skillService.GetSkill(id)).Where(s => s != null).Cast<ISkill>().ToList();
+                
+                // Calculate slot limits
+                var player = _playerService.GetPlayer(build.SteamId);
+                var heroLevel = player?.HeroLevel ?? 1;
+                var slotLimits = _talentService?.CalculateSlotLimits(build.SteamId, heroLevel) ?? Domain.Builds.BuildSlotLimits.CalculateBaseSlots(heroLevel);
+                
+                var validation = _buildValidator.ValidateBuild(hero, activeSkills, ultimateSkill, passiveSkills, slotLimits);
                 build.IsValid = validation.IsValid;
                 build.ValidationErrors = validation.Errors;
             }
@@ -143,14 +184,21 @@ namespace UltimateHeroes.Application.Services
             
             // Activate for player
             var hero = _heroService.GetHero(build.HeroCoreId);
-            var skills = build.SkillIds.Select(id => _skillService.GetSkill(id)).Where(s => s != null).Cast<ISkill>().ToList();
+            var activeSkills = build.ActiveSkillIds.Select(id => _skillService.GetSkill(id)).Where(s => s != null).Cast<ISkill>().ToList();
+            var ultimateSkill = !string.IsNullOrEmpty(build.UltimateSkillId) ? _skillService.GetSkill(build.UltimateSkillId) : null;
+            var passiveSkills = build.PassiveSkillIds.Select(id => _skillService.GetSkill(id)).Where(s => s != null).Cast<ISkill>().ToList();
+            
+            // Combine all skills for ActivateBuild
+            var allSkills = new List<ISkill>(activeSkills);
+            if (ultimateSkill != null) allSkills.Add(ultimateSkill);
+            allSkills.AddRange(passiveSkills);
             
             if (hero != null)
             {
                 var playerState = _playerService.GetPlayer(steamId);
                 if (playerState != null)
                 {
-                    playerState.ActivateBuild(build, hero, skills);
+                    playerState.ActivateBuild(build, hero, allSkills);
                 }
             }
         }
@@ -160,7 +208,8 @@ namespace UltimateHeroes.Application.Services
             return _buildRepository.GetActiveBuild(steamId);
         }
         
-        public ValidationResult ValidateBuild(string heroId, List<string> skillIds)
+        public ValidationResult ValidateBuild(string heroId, 
+            List<string> activeSkillIds, string? ultimateSkillId, List<string> passiveSkillIds)
         {
             var hero = _heroService.GetHero(heroId);
             if (hero == null)
@@ -172,8 +221,8 @@ namespace UltimateHeroes.Application.Services
                 };
             }
             
-            var skills = new List<ISkill>();
-            foreach (var skillId in skillIds)
+            var activeSkills = new List<ISkill>();
+            foreach (var skillId in activeSkillIds)
             {
                 var skill = _skillService.GetSkill(skillId);
                 if (skill == null)
@@ -181,13 +230,46 @@ namespace UltimateHeroes.Application.Services
                     return new ValidationResult
                     {
                         IsValid = false,
-                        Errors = new List<string> { $"Skill {skillId} not found" }
+                        Errors = new List<string> { $"Active Skill {skillId} not found" }
                     };
                 }
-                skills.Add(skill);
+                activeSkills.Add(skill);
             }
             
-            return _buildValidator.ValidateBuild(hero, skills);
+            ISkill? ultimateSkill = null;
+            if (!string.IsNullOrEmpty(ultimateSkillId))
+            {
+                ultimateSkill = _skillService.GetSkill(ultimateSkillId);
+                if (ultimateSkill == null)
+                {
+                    return new ValidationResult
+                    {
+                        IsValid = false,
+                        Errors = new List<string> { $"Ultimate Skill {ultimateSkillId} not found" }
+                    };
+                }
+            }
+            
+            var passiveSkills = new List<ISkill>();
+            foreach (var skillId in passiveSkillIds)
+            {
+                var skill = _skillService.GetSkill(skillId);
+                if (skill == null)
+                {
+                    return new ValidationResult
+                    {
+                        IsValid = false,
+                        Errors = new List<string> { $"Passive Skill {skillId} not found" }
+                    };
+                }
+                passiveSkills.Add(skill);
+            }
+            
+            // Calculate slot limits (need steamId for talents, but we don't have it here)
+            // For validation without player context, use default limits
+            var slotLimits = Domain.Builds.BuildSlotLimits.CalculateBaseSlots(1);
+            
+            return _buildValidator.ValidateBuild(hero, activeSkills, ultimateSkill, passiveSkills, slotLimits);
         }
         
         public List<int> GetUnlockedSlots(string steamId)

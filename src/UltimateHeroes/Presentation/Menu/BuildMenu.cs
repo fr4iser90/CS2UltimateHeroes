@@ -35,7 +35,11 @@ namespace UltimateHeroes.Presentation.Menu
             if (activeBuild != null)
             {
                 var activeDisplay = $"<font color='green'>[ACTIVE]</font> <font color='lightblue'>{activeBuild.BuildName}</font> (Slot {activeBuild.BuildSlot})";
-                var activeSubDisplay = $"<font color='grey' class='fontSize-sm'>Hero: <font color='lightblue'>{activeBuild.HeroCoreId}</font><br>Skills: <font color='yellow'>{string.Join(", ", activeBuild.SkillIds)}</font></font>";
+                var skillsDisplay = $"Active: {activeBuild.ActiveSkillIds.Count}/3";
+                if (!string.IsNullOrEmpty(activeBuild.UltimateSkillId))
+                    skillsDisplay += $" | Ultimate: {activeBuild.UltimateSkillId}";
+                skillsDisplay += $" | Passive: {activeBuild.PassiveSkillIds.Count}/2";
+                var activeSubDisplay = $"<font color='grey' class='fontSize-sm'>Hero: <font color='lightblue'>{activeBuild.HeroCoreId}</font><br>{skillsDisplay}</font>";
                 buildMenu.Add(activeDisplay, activeSubDisplay, (p, opt) =>
                 {
                     p.PrintToChat($" {ChatColors.Yellow}[Ultimate Heroes]{ChatColors.Default} This build is already active!");
@@ -59,14 +63,18 @@ namespace UltimateHeroes.Presentation.Menu
                 {
                     var status = isActive ? "<font color='green'>[ACTIVE]</font>" : "";
                     var display = $"<font color='lightblue'>Slot {slot}: {build.BuildName}</font> {status}";
-                    var subDisplay = $"<font color='grey' class='fontSize-sm'>Hero: <font color='lightblue'>{build.HeroCoreId}</font><br>Skills: <font color='yellow'>{string.Join(", ", build.SkillIds)}</font></font>";
+                    var skillsDisplay = $"Active: {build.ActiveSkillIds.Count}/3";
+                    if (!string.IsNullOrEmpty(build.UltimateSkillId))
+                        skillsDisplay += $" | Ultimate: {build.UltimateSkillId}";
+                    skillsDisplay += $" | Passive: {build.PassiveSkillIds.Count}/2";
+                    var subDisplay = $"<font color='grey' class='fontSize-sm'>Hero: <font color='lightblue'>{build.HeroCoreId}</font><br>{skillsDisplay}</font>";
                     
                     var buildSlot = slot;
                     buildMenu.Add(display, subDisplay, (p, opt) =>
                     {
                         if (!isActive)
                         {
-                            _buildService.ActivateBuild(steamId, buildSlot);
+                            _buildService.ActivateBuild(steamId, buildSlot, p);
                             MenuManager.CloseMenu(p);
                             p.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} Build activated: {build.BuildName}");
                         }

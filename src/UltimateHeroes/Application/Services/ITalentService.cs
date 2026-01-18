@@ -27,5 +27,8 @@ namespace UltimateHeroes.Application.Services
         // Talent Effects
         Dictionary<string, float> GetTalentModifiers(string steamId);
         int GetTalentLevel(string steamId, string talentId);
+        
+        // Slot Expansion
+        Domain.Builds.BuildSlotLimits CalculateSlotLimits(string steamId, int heroLevel);
     }
 }

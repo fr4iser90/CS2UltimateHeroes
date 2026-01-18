@@ -38,23 +38,39 @@ namespace UltimateHeroes.Presentation.UI
         {
             if (player == null || !player.IsValid || playerState == null) return string.Empty;
             
+            // Separate Active and Ultimate Skills
             var activeSkills = playerState.ActiveSkills
-                .Where(s => s.Type == SkillType.Active || s.Type == SkillType.Ultimate)
-                .OrderBy(s => s.Type == SkillType.Ultimate ? 1 : 0) // Ultimates zuletzt
+                .Where(s => s.Type == SkillType.Active)
                 .ToList();
             
-            if (activeSkills.Count == 0) return string.Empty;
+            var ultimateSkill = playerState.ActiveSkills
+                .FirstOrDefault(s => s.Type == SkillType.Ultimate);
             
-            var html = "<div style='position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 1000;'>";
+            if (activeSkills.Count == 0 && ultimateSkill == null) return string.Empty;
             
-            for (int i = 0; i < activeSkills.Count && i < 4; i++)
+            var html = "<div style='position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; align-items: center;'>";
+            
+            // Active Skills Row (1-3)
+            html += "<div style='display: flex; gap: 10px;'>";
+            for (int i = 0; i < activeSkills.Count && i < 3; i++)
             {
                 var skill = activeSkills[i];
                 var cooldown = _cooldownManager.GetCooldown(playerState.SteamId, skill.Id);
                 var isReady = cooldown <= 0;
-                var isUltimate = skill.Type == SkillType.Ultimate;
                 
-                html += RenderSkillSlot(skill, cooldown, isReady, isUltimate, i + 1);
+                html += RenderSkillSlot(skill, cooldown, isReady, false, i + 1);
+            }
+            html += "</div>";
+            
+            // Ultimate Skill Row (separate, centered)
+            if (ultimateSkill != null)
+            {
+                var ultimateCooldown = _cooldownManager.GetCooldown(playerState.SteamId, ultimateSkill.Id);
+                var ultimateReady = ultimateCooldown <= 0;
+                
+                html += "<div style='display: flex; gap: 10px;'>";
+                html += RenderSkillSlot(ultimateSkill, ultimateCooldown, ultimateReady, true, 0); // 0 = Ultimate
+                html += "</div>";
             }
             
             html += "</div>";
@@ -66,8 +82,14 @@ namespace UltimateHeroes.Presentation.UI
         {
             var skillName = skill.DisplayName;
             var skillColor = isUltimate ? "#FFD700" : "#4A90E2";
-            var bgColor = isReady ? "rgba(74, 144, 226, 0.3)" : "rgba(100, 100, 100, 0.3)";
-            var borderColor = isReady ? "#4A90E2" : "#666666";
+            var bgColor = isReady 
+                ? (isUltimate ? "rgba(255, 215, 0, 0.3)" : "rgba(74, 144, 226, 0.3)") 
+                : "rgba(100, 100, 100, 0.3)";
+            var borderColor = isReady 
+                ? (isUltimate ? "#FFD700" : "#4A90E2") 
+                : "#666666";
+            
+            var slotLabel = isUltimate ? "ULT" : slotNumber.ToString();
             
             var html = $@"
                 <div style='
@@ -80,7 +102,7 @@ namespace UltimateHeroes.Presentation.UI
                     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                 '>
                     <div style='font-size: 12px; color: {skillColor}; font-weight: bold; margin-bottom: 4px;'>
-                        [{slotNumber}] {skillName}
+                        [{slotLabel}] {skillName}
                     </div>";
             
             if (!isReady && cooldown > 0)
@@ -91,17 +113,11 @@ namespace UltimateHeroes.Presentation.UI
                         {cooldownText}
                     </div>";
             }
-            else if (isUltimate)
-            {
-                html += $@"
-                    <div style='font-size: 11px; color: #FFD700; font-weight: bold;'>
-                        READY
-                    </div>";
-            }
             else
             {
+                var readyColor = isUltimate ? "#FFD700" : "#4CAF50";
                 html += $@"
-                    <div style='font-size: 11px; color: #4CAF50; font-weight: bold;'>
+                    <div style='font-size: 11px; color: {readyColor}; font-weight: bold;'>
                         READY
                     </div>";
             }

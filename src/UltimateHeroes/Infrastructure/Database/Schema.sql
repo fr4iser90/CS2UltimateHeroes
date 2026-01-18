@@ -14,9 +14,15 @@ CREATE TABLE IF NOT EXISTS builds (
     steamid TEXT NOT NULL,
     build_slot INTEGER NOT NULL,
     hero_core_id TEXT NOT NULL,
-    skill1_id TEXT,
-    skill2_id TEXT,
-    skill3_id TEXT,
+    -- Active Skills (Max 3)
+    active_skill1_id TEXT,
+    active_skill2_id TEXT,
+    active_skill3_id TEXT,
+    -- Ultimate Skill (Max 1, optional)
+    ultimate_skill_id TEXT,
+    -- Passive Skills (Max 2)
+    passive_skill1_id TEXT,
+    passive_skill2_id TEXT,
     build_name TEXT,
     is_active INTEGER DEFAULT 0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,

@@ -30,6 +30,10 @@ namespace UltimateHeroes.Domain.Talents
         WeaponAccuracy,
         MovementSpeed,
         JumpHeight,
-        FallDamageReduction
+        FallDamageReduction,
+        // Slot Expansion Talents
+        ExtraActiveSlot,    // +1 Active Slot
+        ExtraUltimateSlot,  // +1 Ultimate Slot
+        ExtraPassiveSlot    // +1 Passive Slot
     }
 }

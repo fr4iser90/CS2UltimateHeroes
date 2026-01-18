@@ -30,24 +30,46 @@ namespace UltimateHeroes.Infrastructure.Database.Repositories
             
             if (build != null)
             {
-                // Parse SkillIds
-                build.SkillIds = new List<string>();
-                var skill1 = connection.QueryFirstOrDefault<string>(
-                    "SELECT skill1_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                // Load separate skill slots
+                build.ActiveSkillIds = new List<string>();
+                build.PassiveSkillIds = new List<string>();
+                
+                // Active Skills
+                var active1 = connection.QueryFirstOrDefault<string>(
+                    "SELECT active_skill1_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
                     new { SteamId = steamId, BuildSlot = buildSlot }
                 );
-                var skill2 = connection.QueryFirstOrDefault<string>(
-                    "SELECT skill2_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                var active2 = connection.QueryFirstOrDefault<string>(
+                    "SELECT active_skill2_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
                     new { SteamId = steamId, BuildSlot = buildSlot }
                 );
-                var skill3 = connection.QueryFirstOrDefault<string>(
-                    "SELECT skill3_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                var active3 = connection.QueryFirstOrDefault<string>(
+                    "SELECT active_skill3_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
                     new { SteamId = steamId, BuildSlot = buildSlot }
                 );
                 
-                if (!string.IsNullOrEmpty(skill1)) build.SkillIds.Add(skill1);
-                if (!string.IsNullOrEmpty(skill2)) build.SkillIds.Add(skill2);
-                if (!string.IsNullOrEmpty(skill3)) build.SkillIds.Add(skill3);
+                if (!string.IsNullOrEmpty(active1)) build.ActiveSkillIds.Add(active1);
+                if (!string.IsNullOrEmpty(active2)) build.ActiveSkillIds.Add(active2);
+                if (!string.IsNullOrEmpty(active3)) build.ActiveSkillIds.Add(active3);
+                
+                // Ultimate Skill
+                build.UltimateSkillId = connection.QueryFirstOrDefault<string>(
+                    "SELECT ultimate_skill_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                    new { SteamId = steamId, BuildSlot = buildSlot }
+                );
+                
+                // Passive Skills
+                var passive1 = connection.QueryFirstOrDefault<string>(
+                    "SELECT passive_skill1_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                    new { SteamId = steamId, BuildSlot = buildSlot }
+                );
+                var passive2 = connection.QueryFirstOrDefault<string>(
+                    "SELECT passive_skill2_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                    new { SteamId = steamId, BuildSlot = buildSlot }
+                );
+                
+                if (!string.IsNullOrEmpty(passive1)) build.PassiveSkillIds.Add(passive1);
+                if (!string.IsNullOrEmpty(passive2)) build.PassiveSkillIds.Add(passive2);
             }
             
             return build;
@@ -65,23 +87,43 @@ namespace UltimateHeroes.Infrastructure.Database.Repositories
             
             foreach (var build in builds)
             {
-                build.SkillIds = new List<string>();
-                var skill1 = connection.QueryFirstOrDefault<string>(
-                    "SELECT skill1_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                // Load separate skill slots (gleiche Logik wie GetBuild)
+                build.ActiveSkillIds = new List<string>();
+                build.PassiveSkillIds = new List<string>();
+                
+                var active1 = connection.QueryFirstOrDefault<string>(
+                    "SELECT active_skill1_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
                     new { SteamId = steamId, BuildSlot = build.BuildSlot }
                 );
-                var skill2 = connection.QueryFirstOrDefault<string>(
-                    "SELECT skill2_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                var active2 = connection.QueryFirstOrDefault<string>(
+                    "SELECT active_skill2_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
                     new { SteamId = steamId, BuildSlot = build.BuildSlot }
                 );
-                var skill3 = connection.QueryFirstOrDefault<string>(
-                    "SELECT skill3_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                var active3 = connection.QueryFirstOrDefault<string>(
+                    "SELECT active_skill3_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
                     new { SteamId = steamId, BuildSlot = build.BuildSlot }
                 );
                 
-                if (!string.IsNullOrEmpty(skill1)) build.SkillIds.Add(skill1);
-                if (!string.IsNullOrEmpty(skill2)) build.SkillIds.Add(skill2);
-                if (!string.IsNullOrEmpty(skill3)) build.SkillIds.Add(skill3);
+                if (!string.IsNullOrEmpty(active1)) build.ActiveSkillIds.Add(active1);
+                if (!string.IsNullOrEmpty(active2)) build.ActiveSkillIds.Add(active2);
+                if (!string.IsNullOrEmpty(active3)) build.ActiveSkillIds.Add(active3);
+                
+                build.UltimateSkillId = connection.QueryFirstOrDefault<string>(
+                    "SELECT ultimate_skill_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                    new { SteamId = steamId, BuildSlot = build.BuildSlot }
+                );
+                
+                var passive1 = connection.QueryFirstOrDefault<string>(
+                    "SELECT passive_skill1_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                    new { SteamId = steamId, BuildSlot = build.BuildSlot }
+                );
+                var passive2 = connection.QueryFirstOrDefault<string>(
+                    "SELECT passive_skill2_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                    new { SteamId = steamId, BuildSlot = build.BuildSlot }
+                );
+                
+                if (!string.IsNullOrEmpty(passive1)) build.PassiveSkillIds.Add(passive1);
+                if (!string.IsNullOrEmpty(passive2)) build.PassiveSkillIds.Add(passive2);
             }
             
             return builds;
@@ -99,23 +141,43 @@ namespace UltimateHeroes.Infrastructure.Database.Repositories
             
             if (build != null)
             {
-                build.SkillIds = new List<string>();
-                var skill1 = connection.QueryFirstOrDefault<string>(
-                    "SELECT skill1_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                // Load separate skill slots (gleiche Logik wie GetBuild)
+                build.ActiveSkillIds = new List<string>();
+                build.PassiveSkillIds = new List<string>();
+                
+                var active1 = connection.QueryFirstOrDefault<string>(
+                    "SELECT active_skill1_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
                     new { SteamId = steamId, BuildSlot = build.BuildSlot }
                 );
-                var skill2 = connection.QueryFirstOrDefault<string>(
-                    "SELECT skill2_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                var active2 = connection.QueryFirstOrDefault<string>(
+                    "SELECT active_skill2_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
                     new { SteamId = steamId, BuildSlot = build.BuildSlot }
                 );
-                var skill3 = connection.QueryFirstOrDefault<string>(
-                    "SELECT skill3_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                var active3 = connection.QueryFirstOrDefault<string>(
+                    "SELECT active_skill3_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
                     new { SteamId = steamId, BuildSlot = build.BuildSlot }
                 );
                 
-                if (!string.IsNullOrEmpty(skill1)) build.SkillIds.Add(skill1);
-                if (!string.IsNullOrEmpty(skill2)) build.SkillIds.Add(skill2);
-                if (!string.IsNullOrEmpty(skill3)) build.SkillIds.Add(skill3);
+                if (!string.IsNullOrEmpty(active1)) build.ActiveSkillIds.Add(active1);
+                if (!string.IsNullOrEmpty(active2)) build.ActiveSkillIds.Add(active2);
+                if (!string.IsNullOrEmpty(active3)) build.ActiveSkillIds.Add(active3);
+                
+                build.UltimateSkillId = connection.QueryFirstOrDefault<string>(
+                    "SELECT ultimate_skill_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                    new { SteamId = steamId, BuildSlot = build.BuildSlot }
+                );
+                
+                var passive1 = connection.QueryFirstOrDefault<string>(
+                    "SELECT passive_skill1_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                    new { SteamId = steamId, BuildSlot = build.BuildSlot }
+                );
+                var passive2 = connection.QueryFirstOrDefault<string>(
+                    "SELECT passive_skill2_id FROM builds WHERE steamid = @SteamId AND build_slot = @BuildSlot",
+                    new { SteamId = steamId, BuildSlot = build.BuildSlot }
+                );
+                
+                if (!string.IsNullOrEmpty(passive1)) build.PassiveSkillIds.Add(passive1);
+                if (!string.IsNullOrEmpty(passive2)) build.PassiveSkillIds.Add(passive2);
             }
             
             return build;
@@ -128,17 +190,28 @@ namespace UltimateHeroes.Infrastructure.Database.Repositories
             
             connection.Execute(@"
                 INSERT OR REPLACE INTO builds 
-                (steamid, build_slot, hero_core_id, skill1_id, skill2_id, skill3_id, build_name, is_active, created_at, last_used_at)
+                (steamid, build_slot, hero_core_id, 
+                 active_skill1_id, active_skill2_id, active_skill3_id,
+                 ultimate_skill_id,
+                 passive_skill1_id, passive_skill2_id,
+                 build_name, is_active, created_at, last_used_at)
                 VALUES 
-                (@SteamId, @BuildSlot, @HeroCoreId, @Skill1Id, @Skill2Id, @Skill3Id, @BuildName, @IsActive, @CreatedAt, @LastUsedAt)",
+                (@SteamId, @BuildSlot, @HeroCoreId, 
+                 @ActiveSkill1Id, @ActiveSkill2Id, @ActiveSkill3Id,
+                 @UltimateSkillId,
+                 @PassiveSkill1Id, @PassiveSkill2Id,
+                 @BuildName, @IsActive, @CreatedAt, @LastUsedAt)",
                 new
                 {
                     build.SteamId,
                     build.BuildSlot,
                     build.HeroCoreId,
-                    Skill1Id = build.SkillIds.Count > 0 ? build.SkillIds[0] : null,
-                    Skill2Id = build.SkillIds.Count > 1 ? build.SkillIds[1] : null,
-                    Skill3Id = build.SkillIds.Count > 2 ? build.SkillIds[2] : null,
+                    ActiveSkill1Id = build.ActiveSkillIds.Count > 0 ? build.ActiveSkillIds[0] : null,
+                    ActiveSkill2Id = build.ActiveSkillIds.Count > 1 ? build.ActiveSkillIds[1] : null,
+                    ActiveSkill3Id = build.ActiveSkillIds.Count > 2 ? build.ActiveSkillIds[2] : null,
+                    UltimateSkillId = build.UltimateSkillId,
+                    PassiveSkill1Id = build.PassiveSkillIds.Count > 0 ? build.PassiveSkillIds[0] : null,
+                    PassiveSkill2Id = build.PassiveSkillIds.Count > 1 ? build.PassiveSkillIds[1] : null,
                     build.BuildName,
                     IsActive = build.IsActive ? 1 : 0,
                     build.CreatedAt,

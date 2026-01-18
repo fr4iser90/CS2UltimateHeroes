@@ -51,6 +51,36 @@ namespace UltimateHeroes
 
         [JsonPropertyName("MaxPowerBudget")]
         public int MaxPowerBudget { get; set; } = 100;
+        
+        [JsonPropertyName("BotSettings")]
+        public BotSettingsConfig BotSettings { get; set; } = new();
+    }
+    
+    public class BotSettingsConfig
+    {
+        [JsonPropertyName("Enabled")]
+        public bool Enabled { get; set; } = true;
+        
+        [JsonPropertyName("DefaultLevelMode")]
+        public string DefaultLevelMode { get; set; } = "MatchPlayerAverage"; // Level0, MaxLevel, Random, Fixed, MatchPlayerAverage
+        
+        [JsonPropertyName("DefaultBuildMode")]
+        public string DefaultBuildMode { get; set; } = "Random"; // Random, Predefined, Pool, Rotate, Balanced
+        
+        [JsonPropertyName("TrackStats")]
+        public bool TrackStats { get; set; } = true;
+        
+        [JsonPropertyName("AutoAssignBuild")]
+        public bool AutoAssignBuild { get; set; } = true;
+        
+        [JsonPropertyName("BuildChangeInterval")]
+        public float BuildChangeInterval { get; set; } = 300f; // Sekunden
+        
+        [JsonPropertyName("PredefinedBuilds")]
+        public List<string> PredefinedBuilds { get; set; } = new() { "dps", "mobility", "stealth", "support", "balanced" };
+        
+        [JsonPropertyName("BuildPool")]
+        public List<string> BuildPool { get; set; } = new();
 
         [JsonPropertyName("XpPerKill")]
         public float XpPerKill { get; set; } = 10f;
@@ -80,6 +110,7 @@ namespace UltimateHeroes
         private Application.Services.IInMatchEvolutionService? _inMatchEvolutionService;
         private Application.Services.IRoleInfluenceService? _roleInfluenceService;
         private Application.Services.IBuildIntegrityService? _buildIntegrityService;
+        private Application.Services.IBotService? _botService;
         
         // Event Handlers
         private PlayerKillHandler? _playerKillHandler;
@@ -125,6 +156,7 @@ namespace UltimateHeroes
             _inMatchEvolutionService = new Application.Services.InMatchEvolutionService(_playerService);
             _roleInfluenceService = new Application.Services.RoleInfluenceService(_playerService);
             _buildIntegrityService = new Application.Services.BuildIntegrityService(_skillService);
+            _botService = new Application.Services.BotService(_playerService, _heroService, _skillService, _buildService, _xpService);
             
             // Set TalentService in PlayerService for Talent Modifiers
             _playerService.SetTalentService(_talentService);
@@ -150,7 +182,7 @@ namespace UltimateHeroes
             });
             
             // Register Event Handlers
-            _playerKillHandler = new PlayerKillHandler(_xpService, _playerService, _masteryService);
+            _playerKillHandler = new PlayerKillHandler(_xpService, _playerService, _masteryService, _inMatchEvolutionService, _botService);
             _playerHurtHandler = new PlayerHurtHandler(_playerService);
             _eventSystem.RegisterHandler<PlayerKillEvent>(_playerKillHandler);
             _eventSystem.RegisterHandler<PlayerHurtEvent>(_playerHurtHandler);
@@ -200,6 +232,7 @@ namespace UltimateHeroes
             RegisterCommand("css_skill3", "Activate skill slot 3", OnSkill3Command);
             RegisterCommand("css_ultimate", "Activate ultimate skill", OnUltimateCommand);
             RegisterCommand("css_hud", "Toggle HUD display", OnHudCommand);
+            RegisterCommand("css_botstats", "Show bot statistics for balancing", OnBotStatsCommand);
             
             Console.WriteLine("[UltimateHeroes] Plugin loaded successfully!");
         }
@@ -219,6 +252,24 @@ namespace UltimateHeroes
             {
                 _hudManager?.UpdateHud();
             }, TimerFlags.REPEAT);
+            
+            // Start Bot Build Change timer (every 30 seconds)
+            if (Config.BotSettings.Enabled && Config.BotSettings.AutoAssignBuild)
+            {
+                AddTimer(30f, () =>
+                {
+                    var players = Utilities.GetPlayers();
+                    foreach (var player in players)
+                    {
+                        if (player == null || !player.IsValid) continue;
+                        if (_botService != null && _botService.IsBot(player))
+                        {
+                            string botSteamId = player.AuthorizedSteamID?.SteamId64.ToString() ?? "BOT_" + player.Slot;
+                            _botService.CheckBuildChange(botSteamId);
+                        }
+                    }
+                }, TimerFlags.REPEAT);
+            }
             
             // Start In-Match Evolution timer (for time-based modes)
             var gameMode = Application.Services.GameModeDetector.DetectCurrentMode();
@@ -606,6 +657,80 @@ namespace UltimateHeroes
             {
                 _hudManager.EnableHud(player);
                 player.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} HUD enabled. Use {ChatColors.LightBlue}!hud{ChatColors.Default} to disable.");
+            }
+        }
+        
+        private void OnBotStatsCommand(CCSPlayerController? player, CommandInfo commandInfo)
+        {
+            if (player == null || !player.IsValid || _botService == null) return;
+            
+            var allBotStats = _botService.GetAllBotStats();
+            
+            if (allBotStats.Count == 0)
+            {
+                player.PrintToChat($" {ChatColors.Yellow}[Bot Stats]{ChatColors.Default} No bot statistics available yet.");
+                return;
+            }
+            
+            player.PrintToChat($" {ChatColors.Green}╔════════════════════════════════╗");
+            player.PrintToChat($" {ChatColors.Green}║{ChatColors.Default}   Bot Statistics (Balancing)  {ChatColors.Green}║");
+            player.PrintToChat($" {ChatColors.Green}╚════════════════════════════════╝");
+            
+            // Aggregate stats
+            int totalKills = 0;
+            int totalDeaths = 0;
+            float totalDamage = 0f;
+            int totalRoundsWon = 0;
+            int totalRoundsLost = 0;
+            
+            foreach (var stats in allBotStats)
+            {
+                totalKills += stats.TotalKills;
+                totalDeaths += stats.TotalDeaths;
+                totalDamage += stats.TotalDamage;
+                totalRoundsWon += stats.RoundsWon;
+                totalRoundsLost += stats.RoundsLost;
+            }
+            
+            float avgKDRatio = totalDeaths > 0 ? (float)totalKills / totalDeaths : totalKills;
+            float avgWinRate = (totalRoundsWon + totalRoundsLost) > 0 ? (float)totalRoundsWon / (totalRoundsWon + totalRoundsLost) : 0f;
+            
+            player.PrintToChat($" {ChatColors.Yellow}Total Bots: {ChatColors.LightBlue}{allBotStats.Count}");
+            player.PrintToChat($" {ChatColors.Yellow}K/D Ratio: {ChatColors.LightBlue}{avgKDRatio:F2}");
+            player.PrintToChat($" {ChatColors.Yellow}Win Rate: {ChatColors.LightBlue}{avgWinRate * 100:F1}%");
+            player.PrintToChat($" {ChatColors.Yellow}Total Kills: {ChatColors.LightBlue}{totalKills}");
+            player.PrintToChat($" {ChatColors.Yellow}Total Deaths: {ChatColors.LightBlue}{totalDeaths}");
+            player.PrintToChat($" {ChatColors.Yellow}Total Damage: {ChatColors.LightBlue}{totalDamage:F0}");
+            
+            // Show best/worst performing builds
+            var buildStats = new Dictionary<string, (int kills, int deaths, int wins, int losses)>();
+            foreach (var botStat in allBotStats)
+            {
+                foreach (var buildPerf in botStat.BuildPerformances)
+                {
+                    if (!buildStats.ContainsKey(buildPerf.Key))
+                    {
+                        buildStats[buildPerf.Key] = (0, 0, 0, 0);
+                    }
+                    var current = buildStats[buildPerf.Key];
+                    buildStats[buildPerf.Key] = (
+                        current.kills + buildPerf.Value.Kills,
+                        current.deaths + buildPerf.Value.Deaths,
+                        current.wins + buildPerf.Value.Wins,
+                        current.losses + buildPerf.Value.Losses
+                    );
+                }
+            }
+            
+            if (buildStats.Count > 0)
+            {
+                player.PrintToChat($"");
+                player.PrintToChat($" {ChatColors.Yellow}Build Performance:");
+                foreach (var kvp in buildStats.OrderByDescending(x => x.Value.kills))
+                {
+                    var kd = kvp.Value.deaths > 0 ? (float)kvp.Value.kills / kvp.Value.deaths : kvp.Value.kills;
+                    player.PrintToChat($" {ChatColors.Gray}Build {kvp.Key}: K/D {kd:F2} ({kvp.Value.kills}K/{kvp.Value.deaths}D)");
+                }
             }
         }
         
