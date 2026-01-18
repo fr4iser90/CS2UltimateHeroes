@@ -31,7 +31,7 @@ namespace UltimateHeroes.Application.Services
             _heroService = heroService;
         }
         
-        public UltimatePlayer GetOrCreatePlayer(string steamId, CCSPlayerController? playerController = null)
+        public UltimatePlayer GetOrCreatePlayer(string steamId, CCSPlayerController? playerController = null, bool isBot = false, string? botXpPersistence = null)
         {
             // Check Cache
             if (_playerCache.TryGetValue(steamId, out var cachedPlayer))
@@ -64,12 +64,58 @@ namespace UltimateHeroes.Application.Services
                 player.PlayerController = playerController;
                 // Restore CurrentHero from database
                 RestoreCurrentHero(player);
+                
+                // Handle Bot XP Persistence
+                if (isBot && botXpPersistence != null)
+                {
+                    ApplyBotXpPersistence(player, botXpPersistence);
+                }
             }
             
             // Cache
             _playerCache[steamId] = player;
             
             return player;
+        }
+        
+        /// <summary>
+        /// Applies Bot XP persistence settings (Reset, Persistent, Max)
+        /// </summary>
+        private void ApplyBotXpPersistence(UltimatePlayer player, string persistenceMode)
+        {
+            switch (persistenceMode.ToLower())
+            {
+                case "reset":
+                    // Reset to Level 1 every round
+                    player.HeroLevel = 1;
+                    player.CurrentXp = 0f;
+                    player.XpToNextLevel = Domain.Progression.XpSystem.GetXpForLevel(1);
+                    _playerRepository.SavePlayer(player);
+                    break;
+                    
+                case "max":
+                    // Set to Max Level (don't overwrite if already higher)
+                    int maxLevel = Domain.Progression.LevelSystem.MaxHeroLevel;
+                    if (player.HeroLevel < maxLevel)
+                    {
+                        player.HeroLevel = maxLevel;
+                        // Calculate XP needed for max level
+                        float totalXp = 0f;
+                        for (int i = 1; i < maxLevel; i++)
+                        {
+                            totalXp += Domain.Progression.XpSystem.GetXpForLevel(i);
+                        }
+                        player.CurrentXp = totalXp;
+                        player.XpToNextLevel = Domain.Progression.XpSystem.GetXpForLevel(maxLevel);
+                        _playerRepository.SavePlayer(player);
+                    }
+                    break;
+                    
+                case "persistent":
+                default:
+                    // Keep XP from database (default behavior, do nothing)
+                    break;
+            }
         }
         
         public UltimatePlayer? GetPlayer(string steamId)

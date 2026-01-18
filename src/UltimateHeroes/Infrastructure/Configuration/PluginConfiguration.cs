@@ -56,6 +56,12 @@ namespace UltimateHeroes.Infrastructure.Configuration
 
         [JsonPropertyName("XpPerKill")]
         public float XpPerKill { get; set; } = GameConstants.BotXpPerKillDefault;
+        
+        [JsonPropertyName("XpPersistence")]
+        public string XpPersistence { get; set; } = "Persistent"; // "Reset", "Persistent", "Max"
+        // Reset: Bots starten jede Runde bei Level 0
+        // Persistent: Bots behalten XP aus der Datenbank
+        // Max: Bots werden auf Max-Level gesetzt (überschreibt nicht, wenn bereits höher)
     }
     
     public class LeaderboardSettingsConfig

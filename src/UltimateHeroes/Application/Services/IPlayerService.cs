@@ -8,7 +8,7 @@ namespace UltimateHeroes.Application.Services
     /// </summary>
     public interface IPlayerService
     {
-        UltimatePlayer GetOrCreatePlayer(string steamId, CCSPlayerController? playerController = null);
+        UltimatePlayer GetOrCreatePlayer(string steamId, CCSPlayerController? playerController = null, bool isBot = false, string? botXpPersistence = null);
         UltimatePlayer? GetPlayer(string steamId);
         void SavePlayer(UltimatePlayer player);
         void RemovePlayer(string steamId);

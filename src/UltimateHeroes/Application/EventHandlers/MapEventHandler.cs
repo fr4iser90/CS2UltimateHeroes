@@ -95,12 +95,14 @@ namespace UltimateHeroes.Application.EventHandlers
             }, TimerFlags.REPEAT);
             
             // Start Player Name update timer (for scoreboard) - update every 2 seconds
+            // Include bots too
             _plugin.AddTimer(2.0f, () =>
             {
                 var players = Utilities.GetPlayers();
                 foreach (var player in players)
                 {
-                    if (player == null || !player.IsValid || player.AuthorizedSteamID == null) continue;
+                    if (player == null || !player.IsValid) continue;
+                    // Include bots too - they should also show names in scoreboard
                     Application.Helpers.PlayerNameHelper.RefreshPlayerName(
                         player,
                         _playerService,

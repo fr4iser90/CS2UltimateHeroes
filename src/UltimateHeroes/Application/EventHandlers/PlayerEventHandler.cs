@@ -47,9 +47,30 @@ namespace UltimateHeroes.Application.EventHandlers
         public void OnClientConnect(int playerSlot)
         {
             var player = Utilities.GetPlayerFromSlot(playerSlot);
-            if (player == null || !player.IsValid || player.AuthorizedSteamID == null) return;
+            if (player == null || !player.IsValid) return;
             
-            var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+            // Get SteamID - for bots, use a fallback
+            string steamId;
+            if (player.AuthorizedSteamID != null)
+            {
+                steamId = player.AuthorizedSteamID.SteamId64.ToString();
+            }
+            else if (player.IsBot)
+            {
+                // Generate bot ID based on name
+                steamId = GetBotId(player);
+            }
+            else
+            {
+                return; // Skip if no SteamID and not a bot
+            }
+            
+            // Check if bot and get XP persistence setting
+            bool isBot = player.IsBot;
+            string? botXpPersistence = isBot ? _config.BotSettings.XpPersistence : null;
+            
+            // Get or create player with bot XP persistence
+            _playerService.GetOrCreatePlayer(steamId, player, isBot, botXpPersistence);
             _playerService.OnPlayerConnect(steamId, player);
             
             // Update player name after connect
@@ -60,6 +81,16 @@ namespace UltimateHeroes.Application.EventHandlers
                     PlayerNameHelper.RefreshPlayerName(player, _playerService, _accountService, _config, _plugin);
                 }
             });
+        }
+        
+        /// <summary>
+        /// Generates a unique ID for bots based on their name
+        /// </summary>
+        private string GetBotId(CCSPlayerController player)
+        {
+            string botName = player.PlayerName ?? $"Bot_{player.Slot}";
+            // Use simple hash for bot ID (consistent for same bot name)
+            return "BOT_" + botName.GetHashCode().ToString("X");
         }
         
         public void OnClientDisconnect(int playerSlot)
@@ -86,16 +117,20 @@ namespace UltimateHeroes.Application.EventHandlers
             }
             else if (player.IsBot)
             {
-                steamId = "BOT_" + player.Slot;
+                steamId = GetBotId(player);
             }
             else
             {
                 return; // Skip if no SteamID and not a bot
             }
             
-            var playerState = _playerService.GetPlayer(steamId);
+            // Use GetOrCreatePlayer to ensure bot exists
+            // Apply bot XP persistence if it's a bot
+            bool isBot = player.IsBot;
+            string? botXpPersistence = isBot ? _config.BotSettings.XpPersistence : null;
+            var playerState = _playerService.GetOrCreatePlayer(steamId, player, isBot, botXpPersistence);
             
-            // Set default hero if no hero is selected
+            // Set default hero if no hero is selected (for both players and bots)
             if (playerState != null && playerState.CurrentHero == null)
             {
                 var defaultHero = _heroService.GetHero(_defaultHero);
@@ -103,6 +138,20 @@ namespace UltimateHeroes.Application.EventHandlers
                 {
                     _heroService.SetPlayerHero(steamId, _defaultHero);
                     playerState.CurrentHero = defaultHero;
+                    _playerService.SavePlayer(playerState);
+                }
+            }
+            
+            // For bots: ensure they have a hero immediately
+            if (player.IsBot && playerState != null && playerState.CurrentHero == null)
+            {
+                var allHeroes = _heroService.GetAllHeroes();
+                if (allHeroes.Count > 0)
+                {
+                    // Assign random hero to bot
+                    var randomHero = allHeroes[new System.Random().Next(allHeroes.Count)];
+                    _heroService.SetPlayerHero(steamId, randomHero.Id);
+                    playerState.CurrentHero = randomHero;
                     _playerService.SavePlayer(playerState);
                 }
             }
@@ -127,39 +176,72 @@ namespace UltimateHeroes.Application.EventHandlers
             var attacker = @event.Attacker;
             var victim = @event.Userid;
             
-            if (attacker != null && attacker.IsValid && attacker.AuthorizedSteamID != null &&
-                victim != null && victim.IsValid && victim.AuthorizedSteamID != null)
+            // Handle kill event (for both players and bots)
+            if (attacker != null && attacker.IsValid && victim != null && victim.IsValid)
             {
-                var killerSteamId = attacker.AuthorizedSteamID.SteamId64.ToString();
-                var victimSteamId = victim.AuthorizedSteamID.SteamId64.ToString();
-                var isHeadshot = @event.Headshot;
-                
-                var killEvent = new PlayerKillEvent
+                string? killerSteamId = null;
+                if (attacker.AuthorizedSteamID != null)
                 {
-                    KillerSteamId = killerSteamId,
-                    VictimSteamId = victimSteamId,
-                    Killer = attacker,
-                    Victim = victim,
-                    IsHeadshot = isHeadshot
-                };
-                
-                // Dispatch event via EventSystem
-                _eventSystem.Dispatch(killEvent);
-            }
-            
-            // Update player stats and disable HUD when player dies
-            if (victim != null && victim.IsValid && victim.AuthorizedSteamID != null)
-            {
-                var victimSteamId = victim.AuthorizedSteamID.SteamId64.ToString();
-                var playerState = _playerService.GetPlayer(victimSteamId);
-                
-                if (playerState != null)
+                    killerSteamId = attacker.AuthorizedSteamID.SteamId64.ToString();
+                }
+                else if (attacker.IsBot)
                 {
-                    playerState.Deaths++;
-                    _playerService.SavePlayer(playerState);
+                    killerSteamId = GetBotId(attacker);
                 }
                 
-                _hudManager.DisableHud(victim);
+                string? victimSteamId = null;
+                if (victim.AuthorizedSteamID != null)
+                {
+                    victimSteamId = victim.AuthorizedSteamID.SteamId64.ToString();
+                }
+                else if (victim.IsBot)
+                {
+                    victimSteamId = GetBotId(victim);
+                }
+                
+                if (killerSteamId != null && victimSteamId != null)
+                {
+                    var isHeadshot = @event.Headshot;
+                    
+                    var killEvent = new PlayerKillEvent
+                    {
+                        KillerSteamId = killerSteamId,
+                        VictimSteamId = victimSteamId,
+                        Killer = attacker,
+                        Victim = victim,
+                        IsHeadshot = isHeadshot
+                    };
+                    
+                    // Dispatch event via EventSystem
+                    _eventSystem.Dispatch(killEvent);
+                }
+            }
+            
+            // Update player stats and disable HUD when player dies (for both players and bots)
+            if (victim != null && victim.IsValid)
+            {
+                string? victimSteamId = null;
+                if (victim.AuthorizedSteamID != null)
+                {
+                    victimSteamId = victim.AuthorizedSteamID.SteamId64.ToString();
+                }
+                else if (victim.IsBot)
+                {
+                    victimSteamId = GetBotId(victim);
+                }
+                
+                if (victimSteamId != null)
+                {
+                    var playerState = _playerService.GetPlayer(victimSteamId);
+                    
+                    if (playerState != null)
+                    {
+                        playerState.Deaths++;
+                        _playerService.SavePlayer(playerState);
+                    }
+                    
+                    _hudManager.DisableHud(victim);
+                }
             }
             
             return HookResult.Continue;
