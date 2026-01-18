@@ -14,14 +14,16 @@ namespace UltimateHeroes.Application.Services
     {
         private readonly IPlayerRepository _playerRepository;
         private readonly IPlayerService _playerService;
-        // private readonly ITalentService _talentService; // Später
+        private readonly ITalentService? _talentService;
         
         public XpService(
             IPlayerRepository playerRepository,
-            IPlayerService playerService)
+            IPlayerService playerService,
+            ITalentService? talentService = null)
         {
             _playerRepository = playerRepository;
             _playerService = playerService;
+            _talentService = talentService;
         }
         
         public void AwardXp(string steamId, XpSource source, float amount)
@@ -124,9 +126,9 @@ namespace UltimateHeroes.Application.Services
             player.HeroLevel = newLevel;
             player.XpToNextLevel = XpSystem.GetXpForLevel(newLevel);
             
-            // Award Talent Points (später mit TalentService)
-            // var talentPoints = newLevel - oldLevel;
-            // _talentService.AwardTalentPoints(steamId, talentPoints);
+            // Award Talent Points
+            var talentPoints = newLevel - oldLevel;
+            _talentService?.AwardTalentPoints(steamId, talentPoints);
             
             // Notify Player
             var playerController = player.PlayerController;

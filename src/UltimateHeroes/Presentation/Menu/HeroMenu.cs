@@ -8,7 +8,7 @@ using UltimateHeroes.Domain.Heroes;
 namespace UltimateHeroes.Presentation.Menu
 {
     /// <summary>
-    /// Hero Selection Menu
+    /// Hero Selection Menu (Interaktiv mit HTML)
     /// </summary>
     public class HeroMenu
     {
@@ -29,30 +29,34 @@ namespace UltimateHeroes.Presentation.Menu
             var heroes = _heroService.GetAllHeroes();
             var currentHero = _heroService.GetPlayerHero(steamId);
             
-            player.PrintToChat($" {ChatColors.Green}╔════════════════════════════════╗");
-            player.PrintToChat($" {ChatColors.Green}║{ChatColors.Default}     Ultimate Heroes - Heroes     {ChatColors.Green}║");
-            player.PrintToChat($" {ChatColors.Green}╚════════════════════════════════╝");
+            var heroMenu = MenuManager.CreateMenu($"<font color='lightgrey' class='fontSize-m'>Ultimate Heroes - Hero Selection</font>", 5);
             
-            if (currentHero != null)
-            {
-                player.PrintToChat($" {ChatColors.Yellow}Current Hero: {ChatColors.LightBlue}{currentHero.DisplayName}");
-            }
-            
-            player.PrintToChat($"");
-            player.PrintToChat($" {ChatColors.Default}Available Heroes:");
-            
-            int index = 1;
             foreach (var hero in heroes)
             {
                 var isCurrent = currentHero?.Id == hero.Id;
-                var marker = isCurrent ? $"{ChatColors.Green}[ACTIVE]{ChatColors.Default}" : "";
-                player.PrintToChat($" {ChatColors.LightBlue}{index}. {hero.DisplayName}{ChatColors.Default} - {hero.Description} {marker}");
-                player.PrintToChat($"    Power Weight: {ChatColors.Yellow}{hero.PowerWeight}{ChatColors.Default} | Tags: {string.Join(", ", hero.Identity.TagModifiers.Keys)}");
-                index++;
+                var status = isCurrent ? "<font color='green'>[ACTIVE]</font>" : "";
+                var tags = string.Join(", ", hero.Identity.TagModifiers.Keys);
+                
+                var display = $"<font color='lightblue'>{hero.DisplayName}</font> {status}";
+                var subDisplay = $"<font color='grey' class='fontSize-sm'>{hero.Description}<br>Power: <font color='yellow'>{hero.PowerWeight}</font> | Tags: {tags}</font>";
+                
+                var heroId = hero.Id;
+                heroMenu.Add(display, subDisplay, (p, opt) =>
+                {
+                    if (!isCurrent)
+                    {
+                        _heroService.SetPlayerHero(steamId, heroId);
+                        MenuManager.CloseMenu(p);
+                        p.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} Hero selected: {hero.DisplayName}");
+                    }
+                    else
+                    {
+                        p.PrintToChat($" {ChatColors.Yellow}[Ultimate Heroes]{ChatColors.Default} This hero is already active!");
+                    }
+                });
             }
             
-            player.PrintToChat($"");
-            player.PrintToChat($" {ChatColors.Gray}Use: !selecthero <number> to select a hero");
+            MenuManager.OpenMainMenu(player, heroMenu);
         }
     }
 }

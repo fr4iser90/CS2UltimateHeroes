@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Application.Services;
@@ -7,7 +8,7 @@ using UltimateHeroes.Domain.Builds;
 namespace UltimateHeroes.Presentation.Menu
 {
     /// <summary>
-    /// Build Selection/Editor Menu
+    /// Build Selection/Editor Menu (Interaktiv mit HTML)
     /// </summary>
     public class BuildMenu
     {
@@ -29,44 +30,64 @@ namespace UltimateHeroes.Presentation.Menu
             var activeBuild = _buildService.GetActiveBuild(steamId);
             var unlockedSlots = _buildService.GetUnlockedSlots(steamId);
             
-            player.PrintToChat($" {ChatColors.Green}╔════════════════════════════════╗");
-            player.PrintToChat($" {ChatColors.Green}║{ChatColors.Default}  Ultimate Heroes - Builds      {ChatColors.Green}║");
-            player.PrintToChat($" {ChatColors.Green}╚════════════════════════════════╝");
+            var buildMenu = MenuManager.CreateMenu($"<font color='lightgrey' class='fontSize-m'>Ultimate Heroes - Build Management</font>", 5);
             
             if (activeBuild != null)
             {
-                player.PrintToChat($" {ChatColors.Yellow}Active Build: {ChatColors.LightBlue}{activeBuild.BuildName} {ChatColors.Default}(Slot {activeBuild.BuildSlot})");
-                player.PrintToChat($"   Hero: {ChatColors.LightBlue}{activeBuild.HeroCoreId}{ChatColors.Default} | Skills: {string.Join(", ", activeBuild.SkillIds)}");
+                var activeDisplay = $"<font color='green'>[ACTIVE]</font> <font color='lightblue'>{activeBuild.BuildName}</font> (Slot {activeBuild.BuildSlot})";
+                var activeSubDisplay = $"<font color='grey' class='fontSize-sm'>Hero: <font color='lightblue'>{activeBuild.HeroCoreId}</font><br>Skills: <font color='yellow'>{string.Join(", ", activeBuild.SkillIds)}</font></font>";
+                buildMenu.Add(activeDisplay, activeSubDisplay, (p, opt) =>
+                {
+                    p.PrintToChat($" {ChatColors.Yellow}[Ultimate Heroes]{ChatColors.Default} This build is already active!");
+                });
             }
-            
-            player.PrintToChat($"");
-            player.PrintToChat($" {ChatColors.Default}Your Builds:");
             
             for (int slot = 1; slot <= 5; slot++)
             {
                 var build = builds.FirstOrDefault(b => b.BuildSlot == slot);
                 var isUnlocked = unlockedSlots.Contains(slot);
+                var isActive = build?.IsActive ?? false;
                 
                 if (!isUnlocked)
                 {
-                    player.PrintToChat($" {ChatColors.Gray}Slot {slot}: {ChatColors.DarkGray}[LOCKED]");
+                    buildMenu.Add($"<font color='grey'>Slot {slot}: <font color='darkgrey'>[LOCKED]</font></font>", null, (p, opt) =>
+                    {
+                        p.PrintToChat($" {ChatColors.Red}[Ultimate Heroes]{ChatColors.Default} This slot is locked!");
+                    });
                 }
                 else if (build != null)
                 {
-                    var isActive = build.IsActive;
-                    var status = isActive ? $"{ChatColors.Green}[ACTIVE]{ChatColors.Default}" : "";
-                    player.PrintToChat($" {ChatColors.LightBlue}Slot {slot}: {build.BuildName} {status}");
-                    player.PrintToChat($"   Hero: {build.HeroCoreId} | Skills: {string.Join(", ", build.SkillIds)}");
+                    var status = isActive ? "<font color='green'>[ACTIVE]</font>" : "";
+                    var display = $"<font color='lightblue'>Slot {slot}: {build.BuildName}</font> {status}";
+                    var subDisplay = $"<font color='grey' class='fontSize-sm'>Hero: <font color='lightblue'>{build.HeroCoreId}</font><br>Skills: <font color='yellow'>{string.Join(", ", build.SkillIds)}</font></font>";
+                    
+                    var buildSlot = slot;
+                    buildMenu.Add(display, subDisplay, (p, opt) =>
+                    {
+                        if (!isActive)
+                        {
+                            _buildService.ActivateBuild(steamId, buildSlot);
+                            MenuManager.CloseMenu(p);
+                            p.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} Build activated: {build.BuildName}");
+                        }
+                        else
+                        {
+                            p.PrintToChat($" {ChatColors.Yellow}[Ultimate Heroes]{ChatColors.Default} This build is already active!");
+                        }
+                    });
                 }
                 else
                 {
-                    player.PrintToChat($" {ChatColors.Gray}Slot {slot}: {ChatColors.Default}[EMPTY]");
+                    buildMenu.Add($"<font color='grey'>Slot {slot}: <font color='white'>[EMPTY]</font></font>", 
+                        "<font color='grey' class='fontSize-sm'>Use !createbuild to create a build</font>", 
+                        (p, opt) =>
+                    {
+                        p.PrintToChat($" {ChatColors.Yellow}[Ultimate Heroes]{ChatColors.Default} Use: !createbuild {slot} <hero> <skill1> [skill2] [skill3] <name>");
+                    });
                 }
             }
             
-            player.PrintToChat($"");
-            player.PrintToChat($" {ChatColors.Gray}Use: !createbuild <slot> <hero> <skill1> [skill2] [skill3] <name>");
-            player.PrintToChat($" {ChatColors.Gray}Use: !activatebuild <slot> to activate a build");
+            MenuManager.OpenMainMenu(player, buildMenu);
         }
     }
 }

@@ -37,29 +37,14 @@ namespace UltimateHeroes.Infrastructure.Database
             using var connection = GetConnection();
             connection.Open();
             
-            // Execute Schema
-            var schemaPath = Path.Combine(
-                Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "",
-                "Infrastructure", "Database", "Schema.sql"
-            );
-            
-            // Fallback: Embedded Schema
-            if (!File.Exists(schemaPath))
-            {
-                // Try to read from embedded resource or use inline schema
-                var schema = GetEmbeddedSchema();
-                connection.Execute(schema);
-            }
-            else
-            {
-                var schema = File.ReadAllText(schemaPath);
-                connection.Execute(schema);
-            }
+            // Execute Schema (always use embedded schema for reliability)
+            var schema = GetEmbeddedSchema();
+            connection.Execute(schema);
         }
         
         private string GetEmbeddedSchema()
         {
-            // Inline schema as fallback
+            // Complete schema embedded in code
             return @"
                 CREATE TABLE IF NOT EXISTS players (
                     steamid TEXT PRIMARY KEY,
@@ -92,8 +77,42 @@ namespace UltimateHeroes.Infrastructure.Database
                     PRIMARY KEY (steamid, skill_id)
                 );
                 
+                CREATE TABLE IF NOT EXISTS talents (
+                    steamid TEXT NOT NULL,
+                    talent_id TEXT NOT NULL,
+                    talent_level INTEGER DEFAULT 1,
+                    PRIMARY KEY (steamid, talent_id)
+                );
+                
+                CREATE TABLE IF NOT EXISTS talent_points (
+                    steamid TEXT PRIMARY KEY,
+                    available_points INTEGER DEFAULT 0,
+                    total_earned INTEGER DEFAULT 0
+                );
+                
+                CREATE TABLE IF NOT EXISTS xp_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    steamid TEXT NOT NULL,
+                    xp_source TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                    timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS skill_mastery (
+                    steamid TEXT NOT NULL,
+                    skill_id TEXT NOT NULL,
+                    kills INTEGER DEFAULT 0,
+                    uses INTEGER DEFAULT 0,
+                    total_damage REAL DEFAULT 0,
+                    escapes INTEGER DEFAULT 0,
+                    mastery_level INTEGER DEFAULT 0,
+                    PRIMARY KEY (steamid, skill_id)
+                );
+                
                 CREATE INDEX IF NOT EXISTS idx_builds_steamid ON builds(steamid);
                 CREATE INDEX IF NOT EXISTS idx_builds_active ON builds(steamid, is_active) WHERE is_active = 1;
+                CREATE INDEX IF NOT EXISTS idx_xp_history_steamid ON xp_history(steamid);
+                CREATE INDEX IF NOT EXISTS idx_xp_history_timestamp ON xp_history(timestamp);
             ";
         }
     }

@@ -4,11 +4,12 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Application.Services;
 using UltimateHeroes.Domain.Skills;
+using UltimateHeroes.Infrastructure.Cooldown;
 
 namespace UltimateHeroes.Presentation.Menu
 {
     /// <summary>
-    /// Skill Browser Menu
+    /// Skill Browser Menu (Interaktiv mit HTML)
     /// </summary>
     public class SkillMenu
     {
@@ -31,35 +32,73 @@ namespace UltimateHeroes.Presentation.Menu
             var playerState = _playerService.GetPlayer(steamId);
             var allSkills = _skillService.GetAllSkills();
             
-            player.PrintToChat($" {ChatColors.Green}╔════════════════════════════════╗");
-            player.PrintToChat($" {ChatColors.Green}║{ChatColors.Default}  Ultimate Heroes - Skills      {ChatColors.Green}║");
-            player.PrintToChat($" {ChatColors.Green}╚════════════════════════════════╝");
+            var skillMenu = MenuManager.CreateMenu($"<font color='lightgrey' class='fontSize-m'>Ultimate Heroes - Skills</font>", 5);
             
+            // Active Skills Section
             if (playerState != null && playerState.ActiveSkills.Count > 0)
             {
-                player.PrintToChat($" {ChatColors.Yellow}Active Skills:");
                 foreach (var skill in playerState.ActiveSkills)
                 {
                     var cooldown = _cooldownManager.GetCooldown(steamId, skill.Id);
-                    var cooldownText = cooldown > 0 ? $"{ChatColors.Red}[CD: {cooldown:F1}s]{ChatColors.Default}" : $"{ChatColors.Green}[READY]{ChatColors.Default}";
+                    var cooldownText = cooldown > 0 
+                        ? $"<font color='red'>[CD: {cooldown:F1}s]</font>" 
+                        : "<font color='green'>[READY]</font>";
                     var level = playerState.SkillLevels.GetValueOrDefault(skill.Id, 1);
-                    player.PrintToChat($"  {ChatColors.LightBlue}{skill.DisplayName}{ChatColors.Default} (Lv.{level}) - {skill.Description} {cooldownText}");
+                    
+                    var display = $"<font color='green'>[ACTIVE]</font> <font color='lightblue'>{skill.DisplayName}</font> (Lv.{level}) {cooldownText}";
+                    var subDisplay = $"<font color='grey' class='fontSize-sm'>{skill.Description}</font>";
+                    
+                    var skillId = skill.Id;
+                    skillMenu.Add(display, subDisplay, (p, opt) =>
+                    {
+                        if (cooldown <= 0)
+                        {
+                            _skillService.ActivateSkill(steamId, skillId, p);
+                            MenuManager.CloseMenu(p);
+                        }
+                        else
+                        {
+                            p.PrintToChat($" {ChatColors.Red}[Ultimate Heroes]{ChatColors.Default} Skill is on cooldown: {cooldown:F1}s");
+                        }
+                    });
                 }
-                player.PrintToChat($"");
             }
             
-            player.PrintToChat($" {ChatColors.Default}Available Skills:");
-            
+            // Available Skills by Type
             var skillsByType = allSkills.GroupBy(s => s.Type);
             foreach (var group in skillsByType)
             {
-                player.PrintToChat($" {ChatColors.Yellow}{group.Key}:");
                 foreach (var skill in group)
                 {
                     var tags = string.Join(", ", skill.Tags);
-                    player.PrintToChat($"  {ChatColors.LightBlue}{skill.DisplayName}{ChatColors.Default} - Power: {ChatColors.Yellow}{skill.PowerWeight}{ChatColors.Default} | Tags: {tags}");
+                    var display = $"<font color='lightblue'>{skill.DisplayName}</font> <font color='grey'>({group.Key})</font>";
+                    var subDisplay = $"<font color='grey' class='fontSize-sm'>{skill.Description}<br>Power: <font color='yellow'>{skill.PowerWeight}</font> | Tags: {tags}</font>";
+                    
+                    var skillId = skill.Id;
+                    skillMenu.Add(display, subDisplay, (p, opt) =>
+                    {
+                        if (skill.Type == SkillType.Active || skill.Type == SkillType.Ultimate)
+                        {
+                            var cd = _cooldownManager.GetCooldown(steamId, skillId);
+                            if (cd <= 0)
+                            {
+                                _skillService.ActivateSkill(steamId, skillId, p);
+                                MenuManager.CloseMenu(p);
+                            }
+                            else
+                            {
+                                p.PrintToChat($" {ChatColors.Red}[Ultimate Heroes]{ChatColors.Default} Skill is on cooldown: {cd:F1}s");
+                            }
+                        }
+                        else
+                        {
+                            p.PrintToChat($" {ChatColors.Yellow}[Ultimate Heroes]{ChatColors.Default} This is a passive skill!");
+                        }
+                    });
                 }
             }
+            
+            MenuManager.OpenMainMenu(player, skillMenu);
         }
     }
 }
