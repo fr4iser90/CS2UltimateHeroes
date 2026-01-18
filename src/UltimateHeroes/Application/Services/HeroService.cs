@@ -72,18 +72,21 @@ namespace UltimateHeroes.Application.Services
                 .GetTypes()
                 .Where(t => heroType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
             
+            Console.WriteLine($"[HeroService] Found {heroTypes.Count()} hero types to register");
             foreach (var type in heroTypes)
             {
                 try
                 {
                     var hero = (IHero)System.Activator.CreateInstance(type)!;
                     RegisterHero(hero);
+                    Console.WriteLine($"[HeroService] ✅ Registered hero: {hero.DisplayName} ({hero.Id})");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[HeroService] Failed to register hero {type.Name}: {ex.Message}");
+                    Console.WriteLine($"[HeroService] ❌ Failed to register hero {type.Name}: {ex.Message}");
                 }
             }
+            Console.WriteLine($"[HeroService] Total heroes registered: {_heroes.Count}");
         }
     }
 }

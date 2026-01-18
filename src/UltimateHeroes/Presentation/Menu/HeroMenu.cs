@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CounterStrikeSharp.API.Core;
@@ -27,6 +28,14 @@ namespace UltimateHeroes.Presentation.Menu
             
             var steamId = player.AuthorizedSteamID.SteamId64.ToString();
             var heroes = _heroService.GetAllHeroes();
+            
+            if (heroes.Count == 0)
+            {
+                player.PrintToChat($" {ChatColors.Red}[Ultimate Heroes]{ChatColors.Default} No heroes available! Please contact an admin.");
+                Console.WriteLine($"[HeroMenu] WARNING: No heroes found for player {player.PlayerName}");
+                return;
+            }
+            
             var currentHero = _heroService.GetPlayerHero(steamId);
             
             var heroMenu = MenuManager.CreateMenu($"<font color='lightgrey' class='fontSize-m'>Ultimate Heroes - Hero Selection</font>", 5);

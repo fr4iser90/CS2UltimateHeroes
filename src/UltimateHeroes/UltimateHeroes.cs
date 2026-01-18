@@ -69,11 +69,17 @@ namespace UltimateHeroes
 
         public override void Load(bool hotReload)
         {
-            // ============================================
-            // 🔧 PLUGIN BOOTSTRAP (Service Initialization)
-            // ============================================
-            _bootstrap = new PluginBootstrap(this, ModuleDirectory);
-            _bootstrap.Initialize();
+            try
+            {
+                Console.WriteLine("[UltimateHeroes] Starting plugin load...");
+                
+                // ============================================
+                // 🔧 PLUGIN BOOTSTRAP (Service Initialization)
+                // ============================================
+                Console.WriteLine("[UltimateHeroes] Initializing bootstrap...");
+                _bootstrap = new PluginBootstrap(this, ModuleDirectory);
+                _bootstrap.Initialize();
+                Console.WriteLine("[UltimateHeroes] Bootstrap initialized successfully");
             
             // Initialize Menus and HUD
             _bootstrap.HudManager = new Presentation.UI.HudManager(
@@ -153,6 +159,20 @@ namespace UltimateHeroes
             _commandRegistry.RegisterHandler(new BotStatsCommand(_bootstrap.BotService!));
             _commandRegistry.RegisterHandler(new HudCommand(_bootstrap.HudManager!));
             
+            // Admin Commands
+            _commandRegistry.RegisterHandler(new AdminReloadCommand(this));
+            _commandRegistry.RegisterHandler(new AdminGiveXpCommand(_bootstrap.XpService!, _bootstrap.PlayerService!));
+            _commandRegistry.RegisterHandler(new AdminSetLevelCommand(_bootstrap.XpService!, _bootstrap.PlayerService!));
+            _commandRegistry.RegisterHandler(new AdminResetPlayerCommand(_bootstrap.PlayerService!, _bootstrap.HeroService!));
+            _commandRegistry.RegisterHandler(new AdminGiveHeroCommand(_bootstrap.HeroService!, _bootstrap.PlayerService!));
+            _commandRegistry.RegisterHandler(new AdminListPlayersCommand(_bootstrap.PlayerService!));
+            
+            // ============================================
+            // 📋 MENU API INITIALIZATION
+            // ============================================
+            Presentation.Menu.MenuAPI.Load(this);
+            Console.WriteLine("[UltimateHeroes] MenuAPI initialized");
+            
             // ============================================
             // 🎯 COUNTER-STRIKE SHARP EVENTS
             // ============================================
@@ -165,7 +185,14 @@ namespace UltimateHeroes
             RegisterEventHandler<EventRoundStart>(OnRoundStart);
             RegisterEventHandler<EventRoundEnd>(OnRoundEnd);
             
-            Console.WriteLine("[UltimateHeroes] Plugin loaded successfully!");
+                Console.WriteLine("[UltimateHeroes] Plugin loaded successfully!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[UltimateHeroes] ❌ ERROR loading plugin: {ex.Message}");
+                Console.WriteLine($"[UltimateHeroes] Stack trace: {ex.StackTrace}");
+                throw; // Re-throw to let CounterStrikeSharp know the plugin failed to load
+            }
         }
         
         // ============================================

@@ -11,6 +11,17 @@ namespace UltimateHeroes.Presentation.Menu
         {
             if (player == null || !player.IsValid)
                 return;
+            
+            // Ensure player is registered in MenuAPI
+            if (!MenuAPI.Players.ContainsKey(player.Slot))
+            {
+                MenuAPI.Players[player.Slot] = new MenuPlayer
+                {
+                    Player = player,
+                    Buttons = 0
+                };
+            }
+            
             MenuAPI.Players[player.Slot].OpenMainMenu(menu, selectedOptionIndex);
         }
 
@@ -18,27 +29,50 @@ namespace UltimateHeroes.Presentation.Menu
         {
             if (player == null || !player.IsValid)
                 return;
-            MenuAPI.Players[player.Slot].OpenMainMenu(null);
+            
+            if (MenuAPI.Players.ContainsKey(player.Slot))
+            {
+                MenuAPI.Players[player.Slot].OpenMainMenu(null);
+            }
         }
 
         public static void CloseSubMenu(CCSPlayerController player)
         {
             if (player == null || !player.IsValid)
                 return;
-            MenuAPI.Players[player.Slot].CloseSubMenu();
+            
+            if (MenuAPI.Players.ContainsKey(player.Slot))
+            {
+                MenuAPI.Players[player.Slot].CloseSubMenu();
+            }
         }
 
         public static void CloseAllSubMenus(CCSPlayerController player)
         {
             if (player == null || !player.IsValid)
                 return;
-            MenuAPI.Players[player.Slot].CloseAllSubMenus();
+            
+            if (MenuAPI.Players.ContainsKey(player.Slot))
+            {
+                MenuAPI.Players[player.Slot].CloseAllSubMenus();
+            }
         }
 
         public static void OpenSubMenu(CCSPlayerController player, Menu menu)
         {
             if (player == null || !player.IsValid)
                 return;
+            
+            // Ensure player is registered in MenuAPI
+            if (!MenuAPI.Players.ContainsKey(player.Slot))
+            {
+                MenuAPI.Players[player.Slot] = new MenuPlayer
+                {
+                    Player = player,
+                    Buttons = 0
+                };
+            }
+            
             MenuAPI.Players[player.Slot].OpenSubMenu(menu);
         }
 

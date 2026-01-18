@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CounterStrikeSharp.API.Core;
@@ -20,11 +21,20 @@ namespace UltimateHeroes.Presentation.Commands
         
         public void RegisterHandler(ICommandHandler handler)
         {
-            _handlers[handler.CommandName] = handler;
-            _plugin.AddCommand($"css_{handler.CommandName}", handler.Description, (player, info) => 
+            try
             {
-                handler.Handle(player, info);
-            });
+                _handlers[handler.CommandName] = handler;
+                _plugin.AddCommand($"css_{handler.CommandName}", handler.Description, (player, info) => 
+                {
+                    handler.Handle(player, info);
+                });
+                Console.WriteLine($"[UltimateHeroes] Registered command: css_{handler.CommandName}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[UltimateHeroes] ❌ Failed to register command {handler.CommandName}: {ex.Message}");
+                throw;
+            }
         }
         
         public ICommandHandler? GetHandler(string commandName)
