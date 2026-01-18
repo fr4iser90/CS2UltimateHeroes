@@ -1,8 +1,10 @@
 using System.Linq;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Application.Services;
+using UltimateHeroes.Infrastructure.Configuration;
 using UltimateHeroes.Presentation.UI;
 
 namespace UltimateHeroes.Presentation.Commands
@@ -182,6 +184,120 @@ namespace UltimateHeroes.Presentation.Commands
             {
                 _hudManager.EnableHud(player);
                 player.PrintToChat($" {ChatColors.Green}[HUD]{ChatColors.Default} HUD enabled!");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Command Handler für !leaderboard
+    /// </summary>
+    public class LeaderboardCommand : ICommandHandler
+    {
+        private readonly IPlayerService _playerService;
+        private readonly IAccountService? _accountService;
+        private readonly PluginConfiguration _config;
+        
+        public string CommandName => "leaderboard";
+        public string Description => "Show player leaderboard with heroes and levels";
+        
+        public LeaderboardCommand(IPlayerService playerService, IAccountService? accountService, PluginConfiguration config)
+        {
+            _playerService = playerService;
+            _accountService = accountService;
+            _config = config;
+        }
+        
+        public void Handle(CCSPlayerController? player, CommandInfo commandInfo)
+        {
+            if (player == null || !player.IsValid) return;
+            
+            var settings = _config.LeaderboardSettings;
+            
+            if (!settings.Enabled)
+            {
+                player.PrintToChat($" {ChatColors.Red}[Ultimate Heroes]{ChatColors.Default} Leaderboard is disabled!");
+                return;
+            }
+            
+            var players = Utilities.GetPlayers()
+                .Where(p => p != null && p.IsValid && p.AuthorizedSteamID != null && !p.IsBot)
+                .ToList();
+            
+            if (players.Count == 0)
+            {
+                player.PrintToChat($" {ChatColors.Yellow}[Ultimate Heroes]{ChatColors.Default} No players found!");
+                return;
+            }
+            
+            // Get player data
+            var playerData = players
+                .Select(p =>
+                {
+                    var steamId = p.AuthorizedSteamID!.SteamId64.ToString();
+                    var playerState = _playerService.GetPlayer(steamId);
+                    if (playerState == null) return null;
+                    
+                    int level = 0;
+                    if (settings.ShowLevel)
+                    {
+                        if (settings.LevelType == "Account" && _accountService != null)
+                        {
+                            level = _accountService.GetAccountLevelValue(steamId);
+                        }
+                        else
+                        {
+                            level = playerState.HeroLevel;
+                        }
+                    }
+                    
+                    return new
+                    {
+                        Player = p,
+                        PlayerState = playerState,
+                        Level = level,
+                        HeroName = playerState.CurrentHero?.DisplayName ?? "None"
+                    };
+                })
+                .Where(p => p != null)
+                .OrderByDescending(p => p!.Level)
+                .ThenBy(p => p!.Player.PlayerName)
+                .Take(settings.MaxPlayers)
+                .ToList();
+            
+            if (playerData.Count == 0)
+            {
+                player.PrintToChat($" {ChatColors.Yellow}[Ultimate Heroes]{ChatColors.Default} No player data available!");
+                return;
+            }
+            
+            // Display leaderboard
+            player.PrintToChat($" {ChatColors.Green}╔════════════════════════════════════════╗");
+            player.PrintToChat($" {ChatColors.Green}║{ChatColors.Default}   Ultimate Heroes - Leaderboard      {ChatColors.Green}║");
+            player.PrintToChat($" {ChatColors.Green}╚════════════════════════════════════════╝");
+            
+            int rank = 1;
+            foreach (var data in playerData)
+            {
+                var name = data!.Player.PlayerName;
+                var heroInfo = settings.ShowHero ? $" | {data.HeroName}" : "";
+                var levelInfo = settings.ShowLevel ? $"Lv.{data.Level}" : "";
+                
+                var display = $"{rank}. {name}";
+                if (settings.ShowLevel && settings.ShowHero)
+                {
+                    display += $" - {levelInfo}{heroInfo}";
+                }
+                else if (settings.ShowLevel)
+                {
+                    display += $" - {levelInfo}";
+                }
+                else if (settings.ShowHero)
+                {
+                    display += $" - {data.HeroName}";
+                }
+                
+                player.PrintToChat($" {ChatColors.Yellow}{display}");
+                rank++;
             }
         }
     }

@@ -31,6 +31,7 @@ namespace UltimateHeroes.Domain.Talents
         MovementSpeed,
         JumpHeight,
         FallDamageReduction,
+        ModelSizeReduction,  // Reduces model size per level (Rat Passive)
         // Slot Expansion Talents
         ExtraActiveSlot,    // +1 Active Slot
         ExtraUltimateSlot,  // +1 Ultimate Slot

@@ -55,6 +55,12 @@ namespace UltimateHeroes.Presentation.Menu
                     if (!isCurrent)
                     {
                         _heroService.SetPlayerHero(steamId, heroId);
+                        var playerState = _playerService.GetPlayer(steamId);
+                        if (playerState != null)
+                        {
+                            playerState.CurrentHero = hero;
+                            _playerService.SavePlayer(playerState);
+                        }
                         MenuManager.CloseMenu(p);
                         p.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} Hero selected: {hero.DisplayName}");
                     }

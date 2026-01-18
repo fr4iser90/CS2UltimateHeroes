@@ -42,6 +42,12 @@ namespace UltimateHeroes
         public void OnConfigParsed(PluginConfiguration config)
         {
             Config = config;
+            
+            // Set config in XpService if bootstrap is already initialized
+            if (_bootstrap?.XpService != null)
+            {
+                ((Application.Services.XpService)_bootstrap.XpService).SetConfig(config);
+            }
         }
         
         // ============================================
@@ -111,7 +117,9 @@ namespace UltimateHeroes
                 _bootstrap.HeroService!,
                 _bootstrap.HudManager!,
                 _bootstrap.EventSystem!,
-                Config.DefaultHero
+                Config.DefaultHero,
+                Config,
+                _bootstrap.AccountService
             );
             
             _roundEventHandler = new RoundEventHandler(
@@ -156,6 +164,7 @@ namespace UltimateHeroes
             _commandRegistry.RegisterHandler(new TalentCommands(_bootstrap.TalentService!, _bootstrap.PlayerService!, _bootstrap.TalentMenu!));
             _commandRegistry.RegisterHandler(new ShopCommands(_bootstrap.ShopService!, _bootstrap.PlayerService!, _bootstrap.ShopMenu!));
             _commandRegistry.RegisterHandler(new StatsCommand(_bootstrap.PlayerService!, _bootstrap.XpService!));
+            _commandRegistry.RegisterHandler(new LeaderboardCommand(_bootstrap.PlayerService!, _bootstrap.AccountService, Config));
             _commandRegistry.RegisterHandler(new BotStatsCommand(_bootstrap.BotService!));
             _commandRegistry.RegisterHandler(new HudCommand(_bootstrap.HudManager!));
             

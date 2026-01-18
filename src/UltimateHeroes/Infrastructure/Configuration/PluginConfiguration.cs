@@ -23,6 +23,9 @@ namespace UltimateHeroes.Infrastructure.Configuration
         
         [JsonPropertyName("BotSettings")]
         public BotSettingsConfig BotSettings { get; set; } = new();
+        
+        [JsonPropertyName("LeaderboardSettings")]
+        public LeaderboardSettingsConfig LeaderboardSettings { get; set; } = new();
     }
     
     public class BotSettingsConfig
@@ -53,5 +56,23 @@ namespace UltimateHeroes.Infrastructure.Configuration
 
         [JsonPropertyName("XpPerKill")]
         public float XpPerKill { get; set; } = GameConstants.BotXpPerKillDefault;
+    }
+    
+    public class LeaderboardSettingsConfig
+    {
+        [JsonPropertyName("Enabled")]
+        public bool Enabled { get; set; } = true;
+        
+        [JsonPropertyName("ShowHero")]
+        public bool ShowHero { get; set; } = true;
+        
+        [JsonPropertyName("ShowLevel")]
+        public bool ShowLevel { get; set; } = true;
+        
+        [JsonPropertyName("LevelType")]
+        public string LevelType { get; set; } = "Hero"; // "Hero" or "Account"
+        
+        [JsonPropertyName("MaxPlayers")]
+        public int MaxPlayers { get; set; } = 10;
     }
 }

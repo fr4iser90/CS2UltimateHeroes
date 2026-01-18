@@ -1,7 +1,9 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
+using UltimateHeroes.Application.Helpers;
 using UltimateHeroes.Application.Services;
+using UltimateHeroes.Infrastructure.Configuration;
 using UltimateHeroes.Infrastructure.Events;
 using UltimateHeroes.Infrastructure.Events.EventHandlers;
 using UltimateHeroes.Presentation.UI;
@@ -18,19 +20,25 @@ namespace UltimateHeroes.Application.EventHandlers
         private readonly HudManager _hudManager;
         private readonly EventSystem _eventSystem;
         private readonly string _defaultHero;
+        private readonly PluginConfiguration _config;
+        private readonly IAccountService? _accountService;
         
         public PlayerEventHandler(
             IPlayerService playerService,
             IHeroService heroService,
             HudManager hudManager,
             EventSystem eventSystem,
-            string defaultHero)
+            string defaultHero,
+            PluginConfiguration config,
+            IAccountService? accountService = null)
         {
             _playerService = playerService;
             _heroService = heroService;
             _hudManager = hudManager;
             _eventSystem = eventSystem;
             _defaultHero = defaultHero;
+            _config = config;
+            _accountService = accountService;
         }
         
         public void OnClientConnect(int playerSlot)
@@ -77,6 +85,15 @@ namespace UltimateHeroes.Application.EventHandlers
             _hudManager.EnableHud(player);
             
             _playerService.OnPlayerSpawn(steamId, player);
+            
+            // Update player name for scoreboard
+            Server.NextFrame(() =>
+            {
+                if (player != null && player.IsValid)
+                {
+                    PlayerNameHelper.RefreshPlayerName(player, _playerService, _accountService, _config);
+                }
+            });
         }
         
         public HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)

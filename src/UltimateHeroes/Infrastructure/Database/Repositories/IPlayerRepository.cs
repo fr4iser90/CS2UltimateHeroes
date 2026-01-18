@@ -10,5 +10,6 @@ namespace UltimateHeroes.Infrastructure.Database.Repositories
         UltimatePlayer? GetPlayer(string steamId);
         void SavePlayer(UltimatePlayer player);
         void DeletePlayer(string steamId);
+        string? GetHeroCoreId(string steamId);
     }
 }

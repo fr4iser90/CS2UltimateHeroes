@@ -14,6 +14,7 @@ namespace UltimateHeroes.Application.Services
         private readonly IPlayerRepository _playerRepository;
         private readonly Dictionary<string, UltimatePlayer> _playerCache = new();
         private ITalentService? _talentService;
+        private IHeroService? _heroService;
         
         public PlayerService(IPlayerRepository playerRepository)
         {
@@ -23,6 +24,11 @@ namespace UltimateHeroes.Application.Services
         public void SetTalentService(ITalentService talentService)
         {
             _talentService = talentService;
+        }
+        
+        public void SetHeroService(IHeroService heroService)
+        {
+            _heroService = heroService;
         }
         
         public UltimatePlayer GetOrCreatePlayer(string steamId, CCSPlayerController? playerController = null)
@@ -56,6 +62,8 @@ namespace UltimateHeroes.Application.Services
             else
             {
                 player.PlayerController = playerController;
+                // Restore CurrentHero from database
+                RestoreCurrentHero(player);
             }
             
             // Cache
@@ -74,10 +82,28 @@ namespace UltimateHeroes.Application.Services
             var dbPlayer = _playerRepository.GetPlayer(steamId);
             if (dbPlayer != null)
             {
+                // Restore CurrentHero from database
+                RestoreCurrentHero(dbPlayer);
                 _playerCache[steamId] = dbPlayer;
             }
             
             return dbPlayer;
+        }
+        
+        private void RestoreCurrentHero(UltimatePlayer player)
+        {
+            if (_heroService == null || player.CurrentHero != null) return;
+            
+            var heroCoreId = _playerRepository.GetHeroCoreId(player.SteamId);
+            if (!string.IsNullOrEmpty(heroCoreId))
+            {
+                var hero = _heroService.GetHero(heroCoreId);
+                if (hero != null)
+                {
+                    player.CurrentHero = hero;
+                    _heroService.SetPlayerHero(player.SteamId, heroCoreId);
+                }
+            }
         }
         
         public void SavePlayer(UltimatePlayer player)
@@ -174,6 +200,14 @@ namespace UltimateHeroes.Application.Services
                 // Note: CS2 API may not directly support air control modification
                 // This is a placeholder - actual implementation may require game-specific mechanics
                 // For now, we track the modifier for potential future use
+            }
+            
+            // Model Size Reduction (Rat Passive)
+            if (modifiers.TryGetValue("model_size_reduction", out var modelSizeReduction))
+            {
+                // Calculate scale: 1.0 - reduction (e.g., 0.02 per level = 0.98 at level 1, 0.90 at level 5)
+                var scale = 1.0f - modelSizeReduction;
+                Application.Helpers.GameHelpers.SetModelScale(player, scale);
             }
             
             // Other modifiers are applied on-demand (damage, recoil, etc.)

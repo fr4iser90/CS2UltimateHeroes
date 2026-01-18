@@ -357,6 +357,25 @@ namespace UltimateHeroes.Domain.Talents
                             { "fall_damage_reduction", 0.20f } // -20% per level
                         }
                     }
+                },
+                new TalentNode
+                {
+                    Id = "movement_rat_passive",
+                    DisplayName = "Rat Passive",
+                    Description = "Reduces model size by 2% per level, making you harder to hit",
+                    TreeType = TalentTreeType.Movement,
+                    Row = 3,
+                    Column = 2,
+                    MaxLevel = 5,
+                    Prerequisites = new List<string> { "movement_speed", "movement_jump_height" },
+                    Effect = new TalentEffect
+                    {
+                        Type = TalentEffectType.ModelSizeReduction,
+                        Parameters = new Dictionary<string, float>
+                        {
+                            { "model_size_reduction", 0.02f } // -2% per level (max -10% at level 5)
+                        }
+                    }
                 }
             };
         }

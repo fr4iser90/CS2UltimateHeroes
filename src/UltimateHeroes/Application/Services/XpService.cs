@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Modules.Utils;
+using UltimateHeroes.Application.Helpers;
 using UltimateHeroes.Domain.Players;
 using UltimateHeroes.Domain.Progression;
+using UltimateHeroes.Infrastructure.Configuration;
 using UltimateHeroes.Infrastructure.Database.Repositories;
 
 namespace UltimateHeroes.Application.Services
@@ -16,6 +19,7 @@ namespace UltimateHeroes.Application.Services
         private readonly IPlayerService _playerService;
         private readonly ITalentService? _talentService;
         private readonly IAccountService? _accountService;
+        private PluginConfiguration? _config;
         
         public XpService(
             IPlayerRepository playerRepository,
@@ -27,6 +31,11 @@ namespace UltimateHeroes.Application.Services
             _playerService = playerService;
             _talentService = talentService;
             _accountService = accountService;
+        }
+        
+        public void SetConfig(PluginConfiguration config)
+        {
+            _config = config;
         }
         
         public void AwardXp(string steamId, XpSource source, float amount)
@@ -187,6 +196,18 @@ namespace UltimateHeroes.Application.Services
             if (playerController2 != null && playerController2.IsValid)
             {
                 playerController2.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} Level Up! You are now Level {newLevel}!");
+                
+                // Update player name for scoreboard
+                if (_config != null)
+                {
+                    Server.NextFrame(() =>
+                    {
+                        if (playerController2 != null && playerController2.IsValid)
+                        {
+                            PlayerNameHelper.RefreshPlayerName(playerController2, _playerService, _accountService, _config);
+                        }
+                    });
+                }
             }
             
             // Save Player

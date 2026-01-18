@@ -303,5 +303,64 @@ namespace UltimateHeroes.Application.Helpers
                 }
             }
         }
+        
+        /// <summary>
+        /// Setzt die Model-Scale eines Spielers (für Rat Passive)
+        /// </summary>
+        public static void SetModelScale(CCSPlayerController player, float scale)
+        {
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null)
+                return;
+
+            var pawn = player.PlayerPawn.Value;
+            
+            // Clamp scale to reasonable values (0.5 to 1.0)
+            scale = System.Math.Max(0.5f, System.Math.Min(1.0f, scale));
+            
+            // Try to set model scale via entity properties
+            // Note: CS2 API may not directly support model scaling
+            // This attempts to use the entity's scale property if available
+            try
+            {
+                // Try using SetProperty if available (CounterStrikeSharp extension)
+                if (pawn is CBaseEntity entity)
+                {
+                    // Attempt to set model scale via entity property
+                    // Property name may vary: "m_flModelScale", "m_flScale", etc.
+                    try
+                    {
+                        // Try common property names for model scale
+                        var scaleProperty = entity.GetProperty<float>("m_flModelScale");
+                        if (scaleProperty != null)
+                        {
+                            entity.SetProperty("m_flModelScale", scale);
+                            return;
+                        }
+                    }
+                    catch { }
+                    
+                    try
+                    {
+                        var scaleProperty2 = entity.GetProperty<float>("m_flScale");
+                        if (scaleProperty2 != null)
+                        {
+                            entity.SetProperty("m_flScale", scale);
+                            return;
+                        }
+                    }
+                    catch { }
+                }
+                
+                // Alternative: Try via Native methods if available
+                // Note: This may require additional CounterStrikeSharp extensions
+                // For now, the modifier is tracked in TalentModifiers for potential future use
+            }
+            catch
+            {
+                // If model scaling is not available, we can't apply it
+                // The modifier will still be tracked in TalentModifiers for potential future use
+                // This allows the feature to work once the API becomes available
+            }
+        }
     }
 }

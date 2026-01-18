@@ -93,5 +93,15 @@ namespace UltimateHeroes.Infrastructure.Database.Repositories
             connection.Open();
             connection.Execute("DELETE FROM players WHERE steamid = @SteamId", new { SteamId = steamId });
         }
+        
+        public string? GetHeroCoreId(string steamId)
+        {
+            using var connection = _database.GetConnection();
+            connection.Open();
+            return connection.QueryFirstOrDefault<string>(
+                "SELECT hero_core_id FROM players WHERE steamid = @SteamId",
+                new { SteamId = steamId }
+            );
+        }
     }
 }

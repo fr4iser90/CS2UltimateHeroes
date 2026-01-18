@@ -128,6 +128,9 @@ namespace UltimateHeroes.Infrastructure.Plugin
             // Set TalentService in PlayerService for Talent Modifiers
             ((PlayerService)PlayerService).SetTalentService(TalentService);
             
+            // Set HeroService in PlayerService for CurrentHero restoration
+            ((PlayerService)PlayerService).SetHeroService(HeroService);
+            
             // Auto-register Heroes/Skills via Reflection
             ((HeroService)HeroService).RegisterHeroesViaReflection();
             ((SkillService)SkillService).RegisterSkillsViaReflection();
