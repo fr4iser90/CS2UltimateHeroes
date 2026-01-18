@@ -25,11 +25,8 @@ namespace UltimateHeroes.Application.Services
             _effectManager = effectManager;
             _masteryService = masteryService;
             
-            // Set EffectManager for skills that need it
-            if (_effectManager != null)
-            {
-                ConcreteSkills.Stealth.EffectManager = _effectManager;
-            }
+            // EffectManager wird jetzt via Reflection gesetzt (siehe UltimateHeroes.cs)
+            // Keine hardcoded Zuweisungen mehr nötig!
         }
         
         public void RegisterSkill(ISkill skill)
