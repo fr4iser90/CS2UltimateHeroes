@@ -7,11 +7,51 @@ using CounterStrikeSharp.API.Modules.Utils;
 namespace UltimateHeroes.Infrastructure.Effects
 {
     /// <summary>
-    /// Verwaltet temporäre Effects auf Spielern
+    /// Verwaltet temporäre Effects auf Spielern (generisch via Handler Registry)
     /// </summary>
     public class EffectManager
     {
         private readonly Dictionary<string, List<IEffect>> _playerEffects = new(); // steamid -> effects
+        private readonly EffectHandlerRegistry _handlerRegistry;
+        
+        public EffectManager()
+        {
+            _handlerRegistry = new EffectHandlerRegistry();
+            RegisterHandlersViaReflection();
+        }
+        
+        /// <summary>
+        /// Automatically registers all IEffectHandler implementations via Reflection
+        /// </summary>
+        private void RegisterHandlersViaReflection()
+        {
+            var handlerType = typeof(IEffectHandler);
+            var handlerTypes = System.Reflection.Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => handlerType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+            
+            foreach (var type in handlerTypes)
+            {
+                try
+                {
+                    var handler = (IEffectHandler)Activator.CreateInstance(type)!;
+                    _handlerRegistry.RegisterHandler(handler);
+                }
+                catch (Exception ex)
+                {
+                    // Log error but continue
+                    Console.WriteLine($"[EffectManager] Failed to register handler {type.Name}: {ex.Message}");
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Register a custom effect handler (for extensibility)
+        /// </summary>
+        public void RegisterHandler(IEffectHandler handler)
+        {
+            _handlerRegistry.RegisterHandler(handler);
+        }
         
         /// <summary>
         /// Wendet einen Effect auf einen Spieler an
@@ -39,7 +79,17 @@ namespace UltimateHeroes.Infrastructure.Effects
             var player = GetPlayer(steamId);
             if (player != null && player.IsValid)
             {
-                effect.OnApply(player);
+                // Use handler if available, otherwise fallback to direct call
+                var handler = _handlerRegistry.GetHandler(effect.Id);
+                if (handler != null)
+                {
+                    handler.OnApply(player, effect);
+                }
+                else
+                {
+                    // Fallback for effects without handlers
+                    effect.OnApply(player);
+                }
             }
         }
         
@@ -56,7 +106,17 @@ namespace UltimateHeroes.Infrastructure.Effects
                 var player = GetPlayer(steamId);
                 if (player != null && player.IsValid)
                 {
-                    effect.OnRemove(player);
+                    // Use handler if available, otherwise fallback to direct call
+                    var handler = _handlerRegistry.GetHandler(effect.Id);
+                    if (handler != null)
+                    {
+                        handler.OnRemove(player, effect);
+                    }
+                    else
+                    {
+                        // Fallback for effects without handlers
+                        effect.OnRemove(player);
+                    }
                 }
                 
                 _playerEffects[steamId].Remove(effect);
@@ -83,7 +143,17 @@ namespace UltimateHeroes.Infrastructure.Effects
             {
                 if (player != null && player.IsValid)
                 {
-                    effect.OnRemove(player);
+                    // Use handler if available, otherwise fallback to direct call
+                    var handler = _handlerRegistry.GetHandler(effect.Id);
+                    if (handler != null)
+                    {
+                        handler.OnRemove(player, effect);
+                    }
+                    else
+                    {
+                        // Fallback for effects without handlers
+                        effect.OnRemove(player);
+                    }
                 }
             }
             
@@ -129,7 +199,17 @@ namespace UltimateHeroes.Infrastructure.Effects
                         var player = GetPlayer(steamId);
                         if (player != null && player.IsValid)
                         {
-                            effect.OnTick(player);
+                            // Use handler if available, otherwise fallback to direct call
+                            var handler = _handlerRegistry.GetHandler(effect.Id);
+                            if (handler != null)
+                            {
+                                handler.OnTick(player, effect);
+                            }
+                            else
+                            {
+                                // Fallback for effects without handlers
+                                effect.OnTick(player);
+                            }
                         }
                     }
                 }

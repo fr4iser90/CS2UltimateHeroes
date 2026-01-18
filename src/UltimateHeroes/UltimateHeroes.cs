@@ -174,9 +174,7 @@ namespace UltimateHeroes
             // Initialize WeaponModifier
             _weaponModifier = new Infrastructure.Weapons.WeaponModifier(_buffService);
             
-            // Set SpawnService for skills that need it
-            Domain.Skills.ConcreteSkills.MiniSentryPassive.SpawnService = _spawnService;
-            Domain.Skills.ConcreteSkills.ScannerDrone.SpawnService = _spawnService;
+            // SpawnService wird automatisch via Reflection gesetzt (siehe SetSpawnServiceForSkillsViaReflection)
             
             var buildValidator = new BuildValidator();
             _buildService = new BuildService(_buildRepository, _heroService, _skillService, buildValidator, _playerService, _talentService);
@@ -309,6 +307,82 @@ namespace UltimateHeroes
             RegisterCommand("css_botstats", "Show bot statistics for balancing", OnBotStatsCommand);
             
             Console.WriteLine("[UltimateHeroes] Plugin loaded successfully!");
+        }
+        
+        /// <summary>
+        /// Automatically sets EffectManager for skills that need it via Reflection
+        /// </summary>
+        private void SetEffectManagerForSkillsViaReflection()
+        {
+            if (_effectManager == null || _skillService == null) return;
+            
+            var skillType = typeof(Domain.Skills.ISkill);
+            var skillTypes = System.Reflection.Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => skillType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract && 
+                           t != typeof(Domain.Skills.SkillBase) && 
+                           t != typeof(Domain.Skills.ActiveSkillBase) && 
+                           t != typeof(Domain.Skills.PassiveSkillBase));
+            
+            foreach (var type in skillTypes)
+            {
+                try
+                {
+                    // Check if skill has a static EffectManager property
+                    var effectManagerProperty = type.GetProperty("EffectManager", 
+                        System.Reflection.BindingFlags.Public | 
+                        System.Reflection.BindingFlags.Static | 
+                        System.Reflection.BindingFlags.SetProperty);
+                    
+                    if (effectManagerProperty != null && effectManagerProperty.PropertyType == typeof(EffectManager))
+                    {
+                        effectManagerProperty.SetValue(null, _effectManager);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log error but continue
+                    Console.WriteLine($"[UltimateHeroes] Failed to set EffectManager for {type.Name}: {ex.Message}");
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Automatically sets SpawnService for skills that need it via Reflection
+        /// </summary>
+        private void SetSpawnServiceForSkillsViaReflection()
+        {
+            if (_spawnService == null || _skillService == null) return;
+            
+            var skillType = typeof(Domain.Skills.ISkill);
+            var skillTypes = System.Reflection.Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => skillType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract && 
+                           t != typeof(Domain.Skills.SkillBase) && 
+                           t != typeof(Domain.Skills.ActiveSkillBase) && 
+                           t != typeof(Domain.Skills.PassiveSkillBase));
+            
+            foreach (var type in skillTypes)
+            {
+                try
+                {
+                    // Check if skill has a static SpawnService property
+                    var spawnServiceProperty = type.GetProperty("SpawnService", 
+                        System.Reflection.BindingFlags.Public | 
+                        System.Reflection.BindingFlags.Static | 
+                        System.Reflection.BindingFlags.SetProperty);
+                    
+                    if (spawnServiceProperty != null && spawnServiceProperty.PropertyType == typeof(Application.Services.ISpawnService))
+                    {
+                        spawnServiceProperty.SetValue(null, _spawnService);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log error but continue
+                    Console.WriteLine($"[UltimateHeroes] Failed to set SpawnService for {type.Name}: {ex.Message}");
+                }
+            }
         }
 
         private void OnMapStart(string mapName)

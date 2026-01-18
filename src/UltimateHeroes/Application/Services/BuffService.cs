@@ -29,10 +29,33 @@ namespace UltimateHeroes.Application.Services
         
         private void RegisterDefaultHandlers()
         {
-            _handlerRegistry.RegisterHandler(new Infrastructure.Buffs.ConcreteHandlers.SpeedBuffHandler());
-            _handlerRegistry.RegisterHandler(new Infrastructure.Buffs.ConcreteHandlers.SpeedReductionBuffHandler());
-            _handlerRegistry.RegisterHandler(new Infrastructure.Buffs.ConcreteHandlers.RevealBuffHandler());
-            _handlerRegistry.RegisterHandler(new Infrastructure.Buffs.ConcreteHandlers.InfiniteAmmoBuffHandler());
+            // Auto-register all handlers via Reflection
+            RegisterHandlersViaReflection();
+        }
+        
+        /// <summary>
+        /// Automatically registers all IBuffHandler implementations via Reflection
+        /// </summary>
+        private void RegisterHandlersViaReflection()
+        {
+            var handlerType = typeof(IBuffHandler);
+            var handlerTypes = System.Reflection.Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => handlerType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+            
+            foreach (var type in handlerTypes)
+            {
+                try
+                {
+                    var handler = (IBuffHandler)Activator.CreateInstance(type)!;
+                    _handlerRegistry.RegisterHandler(handler);
+                }
+                catch (Exception ex)
+                {
+                    // Log error but continue
+                    Console.WriteLine($"[BuffService] Failed to register handler {type.Name}: {ex.Message}");
+                }
+            }
         }
         
         /// <summary>
