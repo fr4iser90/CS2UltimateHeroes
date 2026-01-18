@@ -13,18 +13,31 @@
 
 ## 🚀 SO TESTEST DU ES:
 
-### **Schritt 1: Test-Plugin erstellen**
+### **Schritt 1: Test-Plugin aktivieren**
 
-Ich habe bereits ein Test-Plugin erstellt: `test/ApiTestPlugin.cs`
+Das Test-Plugin ist bereits im Hauptprojekt integriert: 
+- **Datei:** `src/UltimateHeroes/Infrastructure/Testing/ApiTestPlugin.cs`
+
+Um es zu aktivieren, füge in `UltimateHeroes.cs` hinzu:
+
+```csharp
+#if DEBUG
+// API Testing aktivieren
+var apiTest = new Infrastructure.Testing.ApiTestPlugin();
+apiTest.Load(false);
+#endif
+```
 
 ### **Schritt 2: Plugin kompilieren**
 
 ```bash
 cd /home/fr4iser/Documents/Git/CS2UltimateHeroes
-dotnet build test/ApiTestPlugin.cs
+./build.sh
+# oder
+cd src/UltimateHeroes && dotnet build -c Release
 ```
 
-**ODER:** Kopiere den Code in dein Hauptprojekt und kompiliere es mit.
+Das Test-Plugin wird automatisch mitkompiliert!
 
 ### **Schritt 3: Plugin auf Server laden**
 

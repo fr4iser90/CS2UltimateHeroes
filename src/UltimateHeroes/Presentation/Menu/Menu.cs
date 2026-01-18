@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using CounterStrikeSharp.API.Core;
 
 namespace UltimateHeroes.Presentation.Menu
 {
     /// <summary>
     /// Ein interaktives Menu mit Options
     /// </summary>
-    internal class Menu
+    public class Menu
     {
         internal string Title { get; set; } = "";
         internal int ResultsBeforePaging { get; set; }

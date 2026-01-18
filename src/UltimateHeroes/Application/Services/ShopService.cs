@@ -65,7 +65,7 @@ namespace UltimateHeroes.Application.Services
             return playerItems.CurrentMoney >= item.Cost;
         }
         
-        public bool PurchaseItem(string steamId, string itemId, CCSPlayerController? player = null, Domain.Players.UltimatePlayer? playerState = null)
+        public bool PurchaseItem(string steamId, string itemId, CCSPlayerController? player = null)
         {
             var item = GetShopItem(itemId);
             if (item == null) return false;

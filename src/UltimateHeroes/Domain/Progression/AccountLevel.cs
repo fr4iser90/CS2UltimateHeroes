@@ -9,7 +9,7 @@ namespace UltimateHeroes.Domain.Progression
     public class AccountLevel
     {
         public string SteamId { get; set; } = string.Empty;
-        public int AccountLevel { get; set; } = 1;
+        public int Level { get; set; } = 1;
         public float AccountXp { get; set; } = 0f;
         public float XpToNextLevel { get; set; } = 100f;
         

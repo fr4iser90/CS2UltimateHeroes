@@ -41,7 +41,7 @@ namespace UltimateHeroes.Application.Services
                 dbAccount = new AccountLevel
                 {
                     SteamId = steamId,
-                    AccountLevel = 1,
+                    Level = 1,
                     AccountXp = 0f,
                     XpToNextLevel = 100f
                 };
@@ -54,7 +54,7 @@ namespace UltimateHeroes.Application.Services
         
         public int GetAccountLevelValue(string steamId)
         {
-            return GetAccountLevel(steamId).AccountLevel;
+            return GetAccountLevel(steamId).Level;
         }
         
         public float GetAccountXp(string steamId)
@@ -65,7 +65,7 @@ namespace UltimateHeroes.Application.Services
         public float GetAccountXpProgress(string steamId)
         {
             var account = GetAccountLevel(steamId);
-            return AccountLevel.GetAccountXpProgress(account.AccountXp, account.AccountLevel);
+            return AccountLevel.GetAccountXpProgress(account.AccountXp, account.Level);
         }
         
         public void AwardAccountXp(string steamId, AccountXpSource source, float amount)
@@ -117,7 +117,7 @@ namespace UltimateHeroes.Application.Services
             var account = GetAccountLevel(steamId);
             var newLevel = AccountLevel.GetAccountLevelFromXp(account.AccountXp);
             
-            if (newLevel > account.AccountLevel)
+            if (newLevel > account.Level)
             {
                 OnAccountLevelUp(steamId, newLevel);
             }
@@ -126,8 +126,8 @@ namespace UltimateHeroes.Application.Services
         public void OnAccountLevelUp(string steamId, int newLevel, CCSPlayerController? player = null)
         {
             var account = GetAccountLevel(steamId);
-            var oldLevel = account.AccountLevel;
-            account.AccountLevel = newLevel;
+            var oldLevel = account.Level;
+            account.Level = newLevel;
             account.XpToNextLevel = AccountLevel.GetXpForAccountLevel(newLevel);
             
             // Check for new unlocks
@@ -195,7 +195,7 @@ namespace UltimateHeroes.Application.Services
         public bool CanPrestige(string steamId)
         {
             var account = GetAccountLevel(steamId);
-            return AccountLevel.IsPrestigeUnlocked(account.AccountLevel);
+            return AccountLevel.IsPrestigeUnlocked(account.Level);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CounterStrikeSharp.API.Core;
 using UltimateHeroes.Application;
 using UltimateHeroes.Domain.Builds;
+using UltimateHeroes.Domain.Builds.Validation;
 
 namespace UltimateHeroes.Application.Services
 {

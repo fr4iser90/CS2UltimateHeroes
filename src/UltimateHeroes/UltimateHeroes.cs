@@ -22,6 +22,7 @@ using CounterStrikeSharp.API.Core;
 using UltimateHeroes.Application.EventHandlers;
 using UltimateHeroes.Infrastructure.Configuration;
 using UltimateHeroes.Infrastructure.Plugin;
+using UltimateHeroes.Infrastructure.Testing;
 using UltimateHeroes.Presentation.Commands;
 
 namespace UltimateHeroes
@@ -35,6 +36,11 @@ namespace UltimateHeroes
         public override string ModuleVersion => "0.1.0";
 
         public PluginConfiguration Config { get; set; } = null!;
+        
+        public void OnConfigParsed(PluginConfiguration config)
+        {
+            Config = config;
+        }
         
         // ============================================
         // 🔧 PLUGIN BOOTSTRAP (Service Initialization)
@@ -53,6 +59,11 @@ namespace UltimateHeroes
         // 📝 COMMAND REGISTRY (ausgelagert)
         // ============================================
         private CommandRegistry? _commandRegistry;
+        
+        // ============================================
+        // 🧪 API TEST PLUGIN (für API-Verfügbarkeitstests)
+        // ============================================
+        private ApiTestPlugin? _apiTestPlugin;
 
         public override void Load(bool hotReload)
         {
@@ -61,6 +72,13 @@ namespace UltimateHeroes
             // ============================================
             _bootstrap = new PluginBootstrap(this, ModuleDirectory);
             _bootstrap.Initialize();
+            
+            // ============================================
+            // 🧪 API TEST PLUGIN (aktiviert für API-Tests)
+            // ============================================
+            _apiTestPlugin = new ApiTestPlugin();
+            _apiTestPlugin.Load(hotReload);
+            Console.WriteLine("[UltimateHeroes] API Test Plugin aktiviert - Teste API-Verfügbarkeit...");
             
             // ============================================
             // 🎮 EVENT HANDLERS (ausgelagert)

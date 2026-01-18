@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CounterStrikeSharp.API.Core;
 using UltimateHeroes.Domain.Progression;
 

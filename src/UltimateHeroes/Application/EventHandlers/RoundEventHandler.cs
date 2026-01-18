@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Application.Services;
 using UltimateHeroes.Domain.Progression;
+using UltimateHeroes.Infrastructure.Events;
 
 namespace UltimateHeroes.Application.EventHandlers
 {

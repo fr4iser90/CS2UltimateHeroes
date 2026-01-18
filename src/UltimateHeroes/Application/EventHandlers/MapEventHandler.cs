@@ -3,6 +3,8 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Application.Services;
 using UltimateHeroes.Infrastructure.Configuration;
+using UltimateHeroes.Infrastructure.Effects;
+using UltimateHeroes.Presentation.UI;
 
 namespace UltimateHeroes.Application.EventHandlers
 {

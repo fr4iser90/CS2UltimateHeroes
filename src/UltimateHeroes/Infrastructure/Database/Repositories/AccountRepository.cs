@@ -67,7 +67,7 @@ namespace UltimateHeroes.Infrastructure.Database.Repositories
                 new
                 {
                     accountLevel.SteamId,
-                    AccountLevel = accountLevel.AccountLevel,
+                    AccountLevel = accountLevel.Level,
                     AccountXp = accountLevel.AccountXp,
                     XpToNextLevel = accountLevel.XpToNextLevel,
                     UnlockedTitles = string.Join(",", accountLevel.UnlockedTitles),

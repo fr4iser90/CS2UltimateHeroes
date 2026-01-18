@@ -9,6 +9,7 @@ using UltimateHeroes.Domain.Skills;
 using UltimateHeroes.Infrastructure.Cooldown;
 using UltimateHeroes.Infrastructure.Database;
 using UltimateHeroes.Infrastructure.Database.Repositories;
+using Database = UltimateHeroes.Infrastructure.Database.Database;
 using UltimateHeroes.Infrastructure.Effects;
 using UltimateHeroes.Infrastructure.Events;
 using UltimateHeroes.Infrastructure.Helpers;
