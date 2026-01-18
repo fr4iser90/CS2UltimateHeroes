@@ -86,6 +86,9 @@ namespace UltimateHeroes
         private HeroMenu? _heroMenu;
         private BuildMenu? _buildMenu;
         private SkillMenu? _skillMenu;
+        
+        // HUD
+        private Presentation.UI.HudManager? _hudManager;
 
         public override void Load(bool hotReload)
         {
@@ -155,6 +158,15 @@ namespace UltimateHeroes
             _skillMenu = new SkillMenu(_skillService, _playerService, _cooldownManager);
             _talentMenu = new Presentation.Menu.TalentMenu(_talentService, _playerService);
             
+            // Initialize HUD
+            _hudManager = new Presentation.UI.HudManager(
+                _skillService,
+                _xpService,
+                _playerService,
+                _cooldownManager,
+                _masteryService
+            );
+            
             // Register CounterStrikeSharp Events
             RegisterListener<Listeners.OnMapStart>(OnMapStart);
             RegisterListener<Listeners.OnClientConnect>(OnClientConnect);
@@ -179,6 +191,7 @@ namespace UltimateHeroes
             RegisterCommand("css_skill2", "Activate skill slot 2", OnSkill2Command);
             RegisterCommand("css_skill3", "Activate skill slot 3", OnSkill3Command);
             RegisterCommand("css_ultimate", "Activate ultimate skill", OnUltimateCommand);
+            RegisterCommand("css_hud", "Toggle HUD display", OnHudCommand);
             
             Console.WriteLine("[UltimateHeroes] Plugin loaded successfully!");
         }
@@ -191,6 +204,12 @@ namespace UltimateHeroes
             AddTimer(0.5f, () =>
             {
                 _effectManager?.TickEffects();
+            }, TimerFlags.REPEAT);
+            
+            // Start HUD update timer (every 0.5 seconds)
+            AddTimer(0.5f, () =>
+            {
+                _hudManager?.UpdateHud();
             }, TimerFlags.REPEAT);
         }
         
@@ -210,6 +229,9 @@ namespace UltimateHeroes
             
             var steamId = player.AuthorizedSteamID.SteamId64.ToString();
             _playerService?.OnPlayerDisconnect(steamId);
+            
+            // Disable HUD for player
+            _hudManager?.DisableHud(player);
         }
         
         private void OnPlayerSpawn(CCSPlayerController player)
@@ -230,6 +252,9 @@ namespace UltimateHeroes
                     _playerService?.SavePlayer(playerState);
                 }
             }
+            
+            // Enable HUD for player
+            _hudManager?.EnableHud(player);
             
             _playerService?.OnPlayerSpawn(steamId, player);
         }
@@ -256,6 +281,21 @@ namespace UltimateHeroes
                 };
                 
                 _eventSystem?.Dispatch(killEvent);
+            }
+            
+            // Update player stats and disable HUD when player dies
+            if (victim != null && victim.IsValid && victim.AuthorizedSteamID != null)
+            {
+                var victimSteamId = victim.AuthorizedSteamID.SteamId64.ToString();
+                var playerState = _playerService?.GetPlayer(victimSteamId);
+                if (playerState != null)
+                {
+                    playerState.OnDeath();
+                    _playerService?.SavePlayer(playerState);
+                }
+                
+                // Disable HUD when player dies (will be re-enabled on spawn)
+                _hudManager?.DisableHud(victim);
             }
             
             return HookResult.Continue;
@@ -476,6 +516,30 @@ namespace UltimateHeroes
             catch (Exception ex)
             {
                 player.PrintToChat($" {ChatColors.Red}[Ultimate Heroes]{ChatColors.Default} Error: {ex.Message}");
+            }
+        }
+        
+        private void OnHudCommand(CCSPlayerController? player, CommandInfo commandInfo)
+        {
+            if (player == null || !player.IsValid) return;
+            
+            if (_hudManager == null)
+            {
+                player.PrintToChat($" {ChatColors.Red}[Ultimate Heroes]{ChatColors.Default} HUD system not initialized!");
+                return;
+            }
+            
+            var isEnabled = _hudManager.IsHudEnabled(player);
+            
+            if (isEnabled)
+            {
+                _hudManager.DisableHud(player);
+                player.PrintToChat($" {ChatColors.Yellow}[Ultimate Heroes]{ChatColors.Default} HUD disabled. Use {ChatColors.LightBlue}!hud{ChatColors.Default} to enable.");
+            }
+            else
+            {
+                _hudManager.EnableHud(player);
+                player.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} HUD enabled. Use {ChatColors.LightBlue}!hud{ChatColors.Default} to disable.");
             }
         }
         
