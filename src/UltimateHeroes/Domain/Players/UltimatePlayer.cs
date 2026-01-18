@@ -46,6 +46,9 @@ namespace UltimateHeroes.Domain.Players
         // Talent Modifiers (applied from TalentService)
         public Dictionary<string, float> TalentModifiers { get; set; } = new(); // modifier_key -> value
         
+        // Item Modifiers (temporäre Match-Items)
+        public Dictionary<string, float> ItemModifiers { get; set; } = new(); // modifier_key -> value (damage_boost, speed_boost, etc.)
+        
         /// <summary>
         /// Prüft ob ein Skill bereit ist (Cooldown abgelaufen)
         /// </summary>

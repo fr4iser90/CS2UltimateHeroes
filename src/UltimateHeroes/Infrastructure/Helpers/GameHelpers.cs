@@ -85,9 +85,9 @@ namespace UltimateHeroes.Infrastructure.Helpers
         }
 
         /// <summary>
-        /// Fügt einem Spieler Schaden zu (mit Talent Modifiers)
+        /// Fügt einem Spieler Schaden zu (mit Talent + Item Modifiers)
         /// </summary>
-        public static void DamagePlayer(CCSPlayerController player, int damage, CCSPlayerController? attacker = null, Dictionary<string, float>? attackerModifiers = null)
+        public static void DamagePlayer(CCSPlayerController player, int damage, CCSPlayerController? attacker = null, Dictionary<string, float>? attackerModifiers = null, Dictionary<string, float>? itemModifiers = null)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null)
                 return;
@@ -106,6 +106,15 @@ namespace UltimateHeroes.Infrastructure.Helpers
                 if (attackerModifiers.TryGetValue("headshot_bonus", out var headshotBonus))
                 {
                     // Headshot bonus is applied separately when headshot is detected
+                }
+            }
+            
+            // Apply item modifiers (shop items)
+            if (itemModifiers != null)
+            {
+                if (itemModifiers.TryGetValue("damage_boost", out var itemDamageBoost))
+                {
+                    damage = (int)(damage * (1f + itemDamageBoost));
                 }
             }
 
@@ -174,6 +183,46 @@ namespace UltimateHeroes.Infrastructure.Helpers
             var finalRotation = rotation ?? pawn.AbsRotation;
 
             pawn.Teleport(destination, finalRotation, new Vector());
+        }
+        
+        /// <summary>
+        /// Setzt Armor eines Spielers
+        /// </summary>
+        public static void SetArmor(CCSPlayerController player, int armor, int maxArmor = 100)
+        {
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null)
+                return;
+
+            var pawn = player.PlayerPawn.Value;
+            pawn.ArmorValue = System.Math.Min(armor, maxArmor);
+        }
+        
+        /// <summary>
+        /// Fügt Armor hinzu
+        /// </summary>
+        public static void AddArmor(CCSPlayerController player, int amount, int maxArmor = 100)
+        {
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null)
+                return;
+
+            var pawn = player.PlayerPawn.Value;
+            var newArmor = System.Math.Min(pawn.ArmorValue + amount, maxArmor);
+            pawn.ArmorValue = newArmor;
+        }
+        
+        /// <summary>
+        /// Setzt Movement Speed Multiplier
+        /// </summary>
+        public static void SetMovementSpeed(CCSPlayerController player, float speedMultiplier)
+        {
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null)
+                return;
+
+            var pawn = player.PlayerPawn.Value;
+            if (pawn.MovementServices != null)
+            {
+                pawn.MovementServices.MoveSpeedFactor = speedMultiplier;
+            }
         }
     }
 }

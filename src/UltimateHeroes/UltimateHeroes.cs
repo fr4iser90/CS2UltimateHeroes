@@ -111,6 +111,7 @@ namespace UltimateHeroes
         private Application.Services.IRoleInfluenceService? _roleInfluenceService;
         private Application.Services.IBuildIntegrityService? _buildIntegrityService;
         private Application.Services.IBotService? _botService;
+        private Application.Services.IShopService? _shopService;
         
         // Event Handlers
         private PlayerKillHandler? _playerKillHandler;
@@ -120,6 +121,7 @@ namespace UltimateHeroes
         private HeroMenu? _heroMenu;
         private BuildMenu? _buildMenu;
         private SkillMenu? _skillMenu;
+        private Presentation.Menu.ShopMenu? _shopMenu;
         
         // HUD
         private Presentation.UI.HudManager? _hudManager;
@@ -149,9 +151,15 @@ namespace UltimateHeroes
             
             // Set SkillService in Helper for Damage Tracking
             Infrastructure.Helpers.SkillServiceHelper.SetSkillService(_skillService);
-            var buildValidator = new BuildValidator();
-            _buildService = new BuildService(_buildRepository, _heroService, _skillService, buildValidator, _playerService);
+            
+            // Initialize TalentService first (needed for BuildService)
             _talentService = new TalentService(talentRepository);
+            
+            // Initialize ShopService
+            _shopService = new Application.Services.ShopService();
+            
+            var buildValidator = new BuildValidator();
+            _buildService = new BuildService(_buildRepository, _heroService, _skillService, buildValidator, _playerService, _talentService);
             _xpService = new XpService(_playerRepository, _playerService, _talentService);
             _inMatchEvolutionService = new Application.Services.InMatchEvolutionService(_playerService);
             _roleInfluenceService = new Application.Services.RoleInfluenceService(_playerService);
@@ -195,6 +203,7 @@ namespace UltimateHeroes
             _buildMenu = new BuildMenu(_buildService, _playerService);
             _skillMenu = new SkillMenu(_skillService, _playerService, _cooldownManager);
             _talentMenu = new Presentation.Menu.TalentMenu(_talentService, _playerService);
+            _shopMenu = new Presentation.Menu.ShopMenu(_shopService, _playerService);
             
             // Initialize HUD
             _hudManager = new Presentation.UI.HudManager(
@@ -220,6 +229,7 @@ namespace UltimateHeroes
             RegisterCommand("css_build", "Open build menu", OnBuildCommand);
             RegisterCommand("css_skills", "Open skills menu", OnSkillsCommand);
             RegisterCommand("css_talents", "Open talents menu", OnTalentsCommand);
+            RegisterCommand("css_shop", "Open shop menu", OnShopCommand);
             RegisterCommand("css_selecthero", "Select a hero", OnSelectHeroCommand);
             RegisterCommand("css_createbuild", "Create a build", OnCreateBuildCommand);
             RegisterCommand("css_activatebuild", "Activate a build", OnActivateBuildCommand);

@@ -65,7 +65,7 @@ namespace UltimateHeroes.Application.Services
             return playerItems.CurrentMoney >= item.Cost;
         }
         
-        public bool PurchaseItem(string steamId, string itemId, CCSPlayerController? player = null)
+        public bool PurchaseItem(string steamId, string itemId, CCSPlayerController? player = null, Domain.Players.UltimatePlayer? playerState = null)
         {
             var item = GetShopItem(itemId);
             if (item == null) return false;
@@ -90,6 +90,23 @@ namespace UltimateHeroes.Application.Services
             };
             
             playerItems.ActiveItems[itemId] = activeItem;
+            
+            // Store item modifiers in UltimatePlayer for damage/cooldown calculations
+            if (playerState != null)
+            {
+                switch (item.Effect.Type)
+                {
+                    case ItemEffectType.DamageBoost:
+                        var damagePercent = item.Effect.Parameters.GetValueOrDefault("amount", 0.10f);
+                        playerState.ItemModifiers["damage_boost"] = damagePercent;
+                        break;
+                        
+                    case ItemEffectType.CooldownReduction:
+                        var cooldownReduction = item.Effect.Parameters.GetValueOrDefault("amount", 0.15f);
+                        playerState.ItemModifiers["cooldown_reduction"] = cooldownReduction;
+                        break;
+                }
+            }
             
             // Apply effect
             if (player != null && player.IsValid)
@@ -117,7 +134,9 @@ namespace UltimateHeroes.Application.Services
             {
                 case ItemEffectType.ArmorBoost:
                     var armorAmount = (int)item.Effect.Parameters.GetValueOrDefault("amount", 50f);
-                    // TODO: Apply armor boost via GameHelpers
+                    var currentArmor = playerPawn.ArmorValue;
+                    var newArmor = System.Math.Min(currentArmor + armorAmount, 100);
+                    GameHelpers.SetArmor(player, newArmor);
                     break;
                     
                 case ItemEffectType.HealthBoost:
@@ -127,22 +146,53 @@ namespace UltimateHeroes.Application.Services
                     
                 case ItemEffectType.SpeedBoost:
                     var speedPercent = item.Effect.Parameters.GetValueOrDefault("amount", 0.10f);
-                    // TODO: Apply speed boost
+                    if (playerPawn.MovementServices != null)
+                    {
+                        var baseSpeed = 1.0f; // Base movement speed
+                        var newSpeed = baseSpeed * (1.0f + speedPercent);
+                        GameHelpers.SetMovementSpeed(player, newSpeed);
+                    }
+                    // Store in item modifiers for tracking
+                    playerItems.ActiveItems[itemId].DurationSeconds = item.Effect.Parameters.GetValueOrDefault("duration", 0f);
                     break;
                     
                 case ItemEffectType.DamageBoost:
-                    // TODO: Track damage boost for next damage calculation
+                    var damagePercent = item.Effect.Parameters.GetValueOrDefault("amount", 0.10f);
+                    // Store in item modifiers (will be applied in DamagePlayer)
+                    // Note: This needs to be stored in UltimatePlayer.ItemModifiers
                     break;
                     
                 case ItemEffectType.CooldownReduction:
-                    // TODO: Apply cooldown reduction
+                    var cooldownReduction = item.Effect.Parameters.GetValueOrDefault("amount", 0.15f);
+                    // Store in item modifiers (will be applied in SkillService)
+                    // Note: This needs to be stored in UltimatePlayer.ItemModifiers
                     break;
             }
         }
         
         public void RemoveItemEffect(string steamId, string itemId, CCSPlayerController player)
         {
-            // TODO: Remove item effects when expired
+            var item = GetShopItem(itemId);
+            if (item == null || player == null || !player.IsValid) return;
+            
+            var playerPawn = player.PlayerPawn.Value;
+            if (playerPawn == null) return;
+            
+            switch (item.Effect.Type)
+            {
+                case ItemEffectType.SpeedBoost:
+                    // Reset movement speed to base
+                    if (playerPawn.MovementServices != null)
+                    {
+                        GameHelpers.SetMovementSpeed(player, 1.0f);
+                    }
+                    break;
+                    
+                case ItemEffectType.DamageBoost:
+                case ItemEffectType.CooldownReduction:
+                    // These are removed automatically when item expires
+                    break;
+            }
         }
         
         public void ResetPlayerItemsForNewMatch(string steamId)
