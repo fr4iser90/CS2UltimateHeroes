@@ -23,6 +23,23 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
         private const float BaseDuration = 10f;
         private const float BaseFireRateMultiplier = 2.0f;
         
+        // Buff Definitions (wird einmal erstellt, kann wiederverwendet werden)
+        private static readonly Domain.Buffs.BuffDefinition InfiniteAmmoBuffDefinition = new()
+        {
+            Id = "bullet_storm_infinite_ammo",
+            DisplayName = "Bullet Storm - Infinite Ammo",
+            Type = Domain.Buffs.BuffType.InfiniteAmmo,
+            StackingType = Domain.Buffs.BuffStackingType.Refresh
+        };
+        
+        private static readonly Domain.Buffs.BuffDefinition FireRateBuffDefinition = new()
+        {
+            Id = "bullet_storm_fire_rate",
+            DisplayName = "Bullet Storm - Fire Rate",
+            Type = Domain.Buffs.BuffType.FireRateBoost,
+            StackingType = Domain.Buffs.BuffStackingType.Refresh
+        };
+        
         // BuffService wird über Helper gesetzt
         public override void Activate(CCSPlayerController player)
         {
@@ -32,36 +49,24 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var duration = BaseDuration + (CurrentLevel * 3f);
             var fireRateMultiplier = BaseFireRateMultiplier + (CurrentLevel * 0.3f);
             
-            // Create Bullet Storm Buffs in Skill (not in Service)
+            // Create Buffs from Definitions (generisch)
             var buffService = Infrastructure.Helpers.BuffServiceHelper.GetBuffService();
             if (buffService != null)
             {
                 var steamId = player.AuthorizedSteamID.SteamId64.ToString();
                 
-                // Create Infinite Ammo Buff
-                var infiniteAmmoBuff = new Domain.Buffs.Buff
-                {
-                    Id = "bullet_storm_infinite_ammo", // Fixed ID so it refreshes
-                    DisplayName = "Bullet Storm - Infinite Ammo",
-                    Type = Domain.Buffs.BuffType.InfiniteAmmo,
-                    Duration = duration,
-                    StackingType = Domain.Buffs.BuffStackingType.Refresh
-                };
+                // Create Infinite Ammo Buff from Definition
+                var infiniteAmmoBuff = InfiniteAmmoBuffDefinition.CreateBuff(duration);
                 buffService.ApplyBuff(steamId, infiniteAmmoBuff);
                 
-                // Create Fire Rate Boost Buff
-                var fireRateBuff = new Domain.Buffs.Buff
-                {
-                    Id = "bullet_storm_fire_rate", // Fixed ID so it refreshes
-                    DisplayName = "Bullet Storm - Fire Rate",
-                    Type = Domain.Buffs.BuffType.FireRateBoost,
-                    Duration = duration,
-                    StackingType = Domain.Buffs.BuffStackingType.Refresh,
-                    Parameters = new System.Collections.Generic.Dictionary<string, float>
+                // Create Fire Rate Boost Buff from Definition
+                var fireRateBuff = FireRateBuffDefinition.CreateBuff(
+                    duration,
+                    new System.Collections.Generic.Dictionary<string, float>
                     {
                         { "multiplier", fireRateMultiplier - 1f } // e.g., 2.0x = +100% = 1.0 multiplier
                     }
-                };
+                );
                 buffService.ApplyBuff(steamId, fireRateBuff);
             }
             

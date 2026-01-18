@@ -23,6 +23,15 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
         private const float BaseDuration = 5f;
         private const float BaseDamageReduction = 0.5f; // 50%
         
+        // Buff Definition (wird einmal erstellt, kann wiederverwendet werden)
+        private static readonly Domain.Buffs.BuffDefinition ShieldBuffDefinition = new()
+        {
+            Id = "energy_shield",
+            DisplayName = "Energy Shield",
+            Type = Domain.Buffs.BuffType.Shield,
+            StackingType = Domain.Buffs.BuffStackingType.Refresh
+        };
+        
         // BuffService wird über Helper gesetzt
         public override void Activate(CCSPlayerController player)
         {
@@ -33,23 +42,18 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var damageReduction = BaseDamageReduction + (CurrentLevel * 0.05f); // 50% - 70%
             damageReduction = System.Math.Min(damageReduction, 0.8f); // Cap at 80%
             
-            // Create Shield Buff in Skill (not in Service)
+            // Create Shield Buff from Definition (generisch)
             var buffService = Infrastructure.Helpers.BuffServiceHelper.GetBuffService();
             if (buffService != null)
             {
                 var steamId = player.AuthorizedSteamID.SteamId64.ToString();
-                var shieldBuff = new Domain.Buffs.Buff
-                {
-                    Id = "energy_shield", // Fixed ID so it refreshes instead of stacking
-                    DisplayName = "Energy Shield",
-                    Type = Domain.Buffs.BuffType.Shield,
-                    Duration = duration,
-                    StackingType = Domain.Buffs.BuffStackingType.Refresh,
-                    Parameters = new System.Collections.Generic.Dictionary<string, float>
+                var shieldBuff = ShieldBuffDefinition.CreateBuff(
+                    duration,
+                    new System.Collections.Generic.Dictionary<string, float>
                     {
                         { "damage_reduction", damageReduction }
                     }
-                };
+                );
                 buffService.ApplyBuff(steamId, shieldBuff);
             }
             

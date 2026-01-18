@@ -21,6 +21,15 @@ namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
         public float DamageReduction { get; set; } = 0.5f; // 50% damage reduction if not attacking taunter
         public float SpreadMultiplier { get; set; } = 2.0f; // 2x weapon spread
         
+        // Buff Definition (wird einmal erstellt, kann wiederverwendet werden)
+        private static readonly Domain.Buffs.BuffDefinition TauntBuffDefinition = new()
+        {
+            Id = "taunt",
+            DisplayName = "Taunted",
+            Type = Domain.Buffs.BuffType.Taunt,
+            StackingType = Domain.Buffs.BuffStackingType.Refresh
+        };
+        
         public void OnApply(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.AuthorizedSteamID == null) return;
@@ -28,23 +37,18 @@ namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
             var steamId = player.AuthorizedSteamID.SteamId64.ToString();
             var buffService = BuffServiceHelper.GetBuffService();
             
-            // Create Taunt Buff in Effect (not in Service)
+            // Create Taunt Buff from Definition (generisch)
             if (buffService != null)
             {
-                var tauntBuff = new Domain.Buffs.Buff
-                {
-                    Id = "taunt", // Fixed ID so it refreshes
-                    DisplayName = "Taunted",
-                    Type = Domain.Buffs.BuffType.Taunt,
-                    Duration = Duration,
-                    StackingType = Domain.Buffs.BuffStackingType.Refresh,
-                    Parameters = new System.Collections.Generic.Dictionary<string, float>
+                var tauntBuff = TauntBuffDefinition.CreateBuff(
+                    Duration,
+                    new System.Collections.Generic.Dictionary<string, float>
                     {
                         { "taunter_steamid", float.Parse(TaunterSteamId) }, // Hack: Store as float
                         { "damage_reduction", DamageReduction },
                         { "spread_multiplier", SpreadMultiplier }
                     }
-                };
+                );
                 buffService.ApplyBuff(steamId, tauntBuff);
             }
             

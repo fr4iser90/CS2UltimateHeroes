@@ -24,6 +24,23 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
         private const float BaseDamageBonus = 0.15f; // 15% damage bonus
         private const float BaseSpeedBonus = 0.10f; // 10% speed bonus
         
+        // Buff Definitions (wird einmal erstellt, kann wiederverwendet werden)
+        private static readonly Domain.Buffs.BuffDefinition DamageBoostBuffDefinition = new()
+        {
+            Id = "battle_standard_damage", // Will be made unique per player
+            DisplayName = "Battle Standard - Damage",
+            Type = Domain.Buffs.BuffType.DamageBoost,
+            StackingType = Domain.Buffs.BuffStackingType.Refresh
+        };
+        
+        private static readonly Domain.Buffs.BuffDefinition SpeedBoostBuffDefinition = new()
+        {
+            Id = "battle_standard_speed", // Will be made unique per player
+            DisplayName = "Battle Standard - Speed",
+            Type = Domain.Buffs.BuffType.SpeedBoost,
+            StackingType = Domain.Buffs.BuffStackingType.Refresh
+        };
+        
         public override void Activate(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return;
@@ -56,36 +73,29 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 
                 var allySteamId = ally.AuthorizedSteamID.SteamId64.ToString();
                 
-                // Create Damage Boost Buff
+                // Create Buffs from Definitions (generisch)
                 if (buffService != null)
                 {
-                    var damageBuff = new Domain.Buffs.Buff
-                    {
-                        Id = $"battle_standard_damage_{allySteamId}", // Unique per player
-                        DisplayName = "Battle Standard - Damage",
-                        Type = Domain.Buffs.BuffType.DamageBoost,
-                        Duration = duration,
-                        StackingType = Domain.Buffs.BuffStackingType.Refresh,
-                        Parameters = new System.Collections.Generic.Dictionary<string, float>
+                    // Create Damage Boost Buff from Definition
+                    var damageBuff = DamageBoostBuffDefinition.CreateBuff(
+                        duration,
+                        new System.Collections.Generic.Dictionary<string, float>
                         {
                             { "multiplier", damageBonus }
                         }
-                    };
+                    );
+                    damageBuff.Id = $"battle_standard_damage_{allySteamId}"; // Make unique per player
                     buffService.ApplyBuff(allySteamId, damageBuff);
                     
-                    // Create Speed Boost Buff
-                    var speedBuff = new Domain.Buffs.Buff
-                    {
-                        Id = $"battle_standard_speed_{allySteamId}", // Unique per player
-                        DisplayName = "Battle Standard - Speed",
-                        Type = Domain.Buffs.BuffType.SpeedBoost,
-                        Duration = duration,
-                        StackingType = Domain.Buffs.BuffStackingType.Refresh,
-                        Parameters = new System.Collections.Generic.Dictionary<string, float>
+                    // Create Speed Boost Buff from Definition
+                    var speedBuff = SpeedBoostBuffDefinition.CreateBuff(
+                        duration,
+                        new System.Collections.Generic.Dictionary<string, float>
                         {
                             { "multiplier", speedBonus }
                         }
-                    };
+                    );
+                    speedBuff.Id = $"battle_standard_speed_{allySteamId}"; // Make unique per player
                     buffService.ApplyBuff(allySteamId, speedBuff);
                 }
                 

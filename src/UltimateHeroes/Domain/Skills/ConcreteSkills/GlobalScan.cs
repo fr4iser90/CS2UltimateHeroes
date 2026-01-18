@@ -22,6 +22,15 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
         
         private const float BaseDuration = 5f;
         
+        // Buff Definition (wird einmal erstellt, kann wiederverwendet werden)
+        private static readonly Domain.Buffs.BuffDefinition RevealBuffDefinition = new()
+        {
+            Id = "global_scan_reveal", // Will be made unique per player
+            DisplayName = "Revealed",
+            Type = Domain.Buffs.BuffType.Reveal,
+            StackingType = Domain.Buffs.BuffStackingType.Refresh
+        };
+        
         public override void Activate(CCSPlayerController player)
         {
             if (player == null || !player.IsValid) return;
@@ -40,17 +49,11 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 
                 var targetSteamId = target.AuthorizedSteamID.SteamId64.ToString();
                 
-                // Create Reveal Buff
+                // Create Reveal Buff from Definition (generisch)
                 if (buffService != null)
                 {
-                    var revealBuff = new Domain.Buffs.Buff
-                    {
-                        Id = $"global_scan_reveal_{targetSteamId}", // Unique per player
-                        DisplayName = "Revealed",
-                        Type = Domain.Buffs.BuffType.Reveal,
-                        Duration = duration,
-                        StackingType = Domain.Buffs.BuffStackingType.Refresh
-                    };
+                    var revealBuff = RevealBuffDefinition.CreateBuff(duration);
+                    revealBuff.Id = $"global_scan_reveal_{targetSteamId}"; // Make unique per player
                     buffService.ApplyBuff(targetSteamId, revealBuff);
                 }
                 

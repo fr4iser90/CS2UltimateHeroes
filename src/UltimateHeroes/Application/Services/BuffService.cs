@@ -5,17 +5,43 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Domain.Buffs;
+using UltimateHeroes.Infrastructure.Buffs;
 using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Application.Services
 {
     /// <summary>
-    /// Service für Buff Management
+    /// Service für Buff Management (generisch via Handler Registry)
     /// </summary>
     public class BuffService : IBuffService
     {
         private readonly Dictionary<string, List<Buff>> _playerBuffs = new(); // steamid -> buffs
         private readonly Dictionary<string, string> _tauntTargets = new(); // taunted_steamid -> taunter_steamid
+        private readonly BuffHandlerRegistry _handlerRegistry;
+        
+        public BuffService()
+        {
+            _handlerRegistry = new BuffHandlerRegistry();
+            
+            // Register default handlers
+            RegisterDefaultHandlers();
+        }
+        
+        private void RegisterDefaultHandlers()
+        {
+            _handlerRegistry.RegisterHandler(new Infrastructure.Buffs.ConcreteHandlers.SpeedBuffHandler());
+            _handlerRegistry.RegisterHandler(new Infrastructure.Buffs.ConcreteHandlers.SpeedReductionBuffHandler());
+            _handlerRegistry.RegisterHandler(new Infrastructure.Buffs.ConcreteHandlers.RevealBuffHandler());
+            _handlerRegistry.RegisterHandler(new Infrastructure.Buffs.ConcreteHandlers.InfiniteAmmoBuffHandler());
+        }
+        
+        /// <summary>
+        /// Register a custom buff handler (for extensibility)
+        /// </summary>
+        public void RegisterHandler(IBuffHandler handler)
+        {
+            _handlerRegistry.RegisterHandler(handler);
+        }
         
         public void ApplyBuff(string steamId, Buff buff)
         {
@@ -34,7 +60,7 @@ namespace UltimateHeroes.Application.Services
             buff.AppliedAt = DateTime.UtcNow;
             _playerBuffs[steamId].Add(buff);
             
-            // Apply immediate effects
+            // Apply immediate effects via handler (generisch)
             ApplyBuffEffects(steamId, buff);
         }
         
@@ -321,72 +347,47 @@ namespace UltimateHeroes.Application.Services
             }
         }
         
+        /// <summary>
+        /// Apply buff effects via handler (generisch - kein switch case mehr)
+        /// </summary>
         private void ApplyBuffEffects(string steamId, Buff buff)
         {
             var player = GetPlayer(steamId);
             if (player == null || !player.IsValid) return;
             
-            switch (buff.Type)
+            // Get handler for this buff type
+            var handler = _handlerRegistry.GetHandler(buff.Type);
+            if (handler != null)
             {
-                case BuffType.SpeedBoost:
-                    var speedMultiplier = buff.Parameters.GetValueOrDefault("multiplier", 0f);
-                    GameHelpers.SetMovementSpeed(player, 1.0f + speedMultiplier);
-                    break;
-                case BuffType.SpeedReduction:
-                    var speedReduction = buff.Parameters.GetValueOrDefault("multiplier", 0f);
-                    GameHelpers.SetMovementSpeed(player, 1.0f + speedReduction); // Negative value = reduction
-                    break;
-                case BuffType.Reveal:
-                    GameHelpers.MakePlayerInvisible(player, false);
-                    break;
+                handler.OnApply(player, buff);
             }
+            // If no handler registered, buff is passive (e.g., DamageBoost, Shield - handled in DamagePlayer)
         }
         
+        /// <summary>
+        /// Remove buff effects via handler (generisch)
+        /// </summary>
         private void RemoveBuffEffects(string steamId, Buff buff)
         {
             var player = GetPlayer(steamId);
             if (player == null || !player.IsValid) return;
             
-            switch (buff.Type)
-            {
-                case BuffType.SpeedBoost:
-                case BuffType.SpeedReduction:
-                    // Reset to base speed (1.0)
-                    GameHelpers.SetMovementSpeed(player, 1.0f);
-                    break;
-            }
+            // Get handler for this buff type
+            var handler = _handlerRegistry.GetHandler(buff.Type);
+            handler?.OnRemove(player, buff);
         }
         
+        /// <summary>
+        /// Tick buff effects via handler (generisch)
+        /// </summary>
         private void TickBuffEffects(string steamId, Buff buff)
         {
             var player = GetPlayer(steamId);
             if (player == null || !player.IsValid) return;
             
-            switch (buff.Type)
-            {
-                case BuffType.InfiniteAmmo:
-                    // Refill ammo every tick
-                    if (player.PlayerPawn.Value?.WeaponServices?.ActiveWeapon.Value != null)
-                    {
-                        var weapon = player.PlayerPawn.Value.WeaponServices.ActiveWeapon.Value;
-                        // TODO: Set ammo to max (requires CS2 API)
-                    }
-                    break;
-                case BuffType.SpeedBoost:
-                    // Keep speed boost active
-                    var speedMultiplier = buff.Parameters.GetValueOrDefault("multiplier", 0f);
-                    GameHelpers.SetMovementSpeed(player, 1.0f + speedMultiplier);
-                    break;
-                case BuffType.SpeedReduction:
-                    // Keep speed reduction active
-                    var speedReduction = buff.Parameters.GetValueOrDefault("multiplier", 0f);
-                    GameHelpers.SetMovementSpeed(player, 1.0f + speedReduction);
-                    break;
-                case BuffType.Reveal:
-                    // Keep reveal active (make visible)
-                    GameHelpers.MakePlayerInvisible(player, false);
-                    break;
-            }
+            // Get handler for this buff type
+            var handler = _handlerRegistry.GetHandler(buff.Type);
+            handler?.OnTick(player, buff);
         }
         
         public bool IsTaunted(string steamId)

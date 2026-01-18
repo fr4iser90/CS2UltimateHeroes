@@ -18,6 +18,15 @@ namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
         
         public float SlowMultiplier { get; set; } = 0.5f; // 50% speed
         
+        // Buff Definition (wird einmal erstellt, kann wiederverwendet werden)
+        private static readonly Domain.Buffs.BuffDefinition SpeedReductionBuffDefinition = new()
+        {
+            Id = "time_dilation_speed_reduction",
+            DisplayName = "Time Dilation - Slowed",
+            Type = Domain.Buffs.BuffType.SpeedReduction,
+            StackingType = Domain.Buffs.BuffStackingType.Refresh
+        };
+        
         public void OnApply(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.AuthorizedSteamID == null) return;
@@ -25,22 +34,17 @@ namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
             var steamId = player.AuthorizedSteamID.SteamId64.ToString();
             var buffService = BuffServiceHelper.GetBuffService();
             
-            // Create Speed Reduction Buff in Effect (not in Service)
+            // Create Speed Reduction Buff from Definition (generisch)
             if (buffService != null)
             {
                 var speedReduction = 1f - SlowMultiplier; // e.g., 0.5 speed = -0.5 multiplier
-                var speedReductionBuff = new Domain.Buffs.Buff
-                {
-                    Id = "time_dilation_speed_reduction", // Fixed ID so it refreshes
-                    DisplayName = "Time Dilation - Slowed",
-                    Type = Domain.Buffs.BuffType.SpeedReduction,
-                    Duration = Duration,
-                    StackingType = Domain.Buffs.BuffStackingType.Refresh,
-                    Parameters = new System.Collections.Generic.Dictionary<string, float>
+                var speedReductionBuff = SpeedReductionBuffDefinition.CreateBuff(
+                    Duration,
+                    new System.Collections.Generic.Dictionary<string, float>
                     {
                         { "multiplier", -speedReduction } // Negative = reduction
                     }
-                };
+                );
                 buffService.ApplyBuff(steamId, speedReductionBuff);
             }
             

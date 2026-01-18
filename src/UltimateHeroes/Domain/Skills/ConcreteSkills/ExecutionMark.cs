@@ -26,6 +26,15 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
         private const float BaseDamageMultiplier = 2.0f;
         private const float BaseRange = 800f;
         
+        // Buff Definition (wird einmal erstellt, kann wiederverwendet werden)
+        private static readonly Domain.Buffs.BuffDefinition ExecutionMarkBuffDefinition = new()
+        {
+            Id = "execution_mark",
+            DisplayName = "Execution Mark",
+            Type = Domain.Buffs.BuffType.ExecutionMark,
+            StackingType = Domain.Buffs.BuffStackingType.Refresh
+        };
+        
         // BuffService wird über Helper gesetzt
         public override void Activate(CCSPlayerController player)
         {
@@ -70,23 +79,18 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 return;
             }
             
-            // Create Execution Mark Buff in Skill (not in Service)
+            // Create Execution Mark Buff from Definition (generisch)
             var buffService = Infrastructure.Helpers.BuffServiceHelper.GetBuffService();
             if (buffService != null)
             {
                 var targetSteamId = target.AuthorizedSteamID.SteamId64.ToString();
-                var executionMarkBuff = new Domain.Buffs.Buff
-                {
-                    Id = "execution_mark", // Fixed ID so it refreshes instead of stacking
-                    DisplayName = "Execution Mark",
-                    Type = Domain.Buffs.BuffType.ExecutionMark,
-                    Duration = duration,
-                    StackingType = Domain.Buffs.BuffStackingType.Refresh,
-                    Parameters = new System.Collections.Generic.Dictionary<string, float>
+                var executionMarkBuff = ExecutionMarkBuffDefinition.CreateBuff(
+                    duration,
+                    new System.Collections.Generic.Dictionary<string, float>
                     {
                         { "damage_multiplier", damageMultiplier }
                     }
-                };
+                );
                 buffService.ApplyBuff(targetSteamId, executionMarkBuff);
             }
             
