@@ -40,6 +40,27 @@ namespace UltimateHeroes.Domain.Players
         public int Assists { get; set; } = 0;
         public int Headshots { get; set; } = 0;
         
+        /// <summary>
+        /// Helper Property: Match Stats als Dictionary
+        /// </summary>
+        public Dictionary<string, int> MatchStats => new()
+        {
+            { "Kills", Kills },
+            { "Deaths", Deaths },
+            { "Assists", Assists },
+            { "Headshots", Headshots }
+        };
+        
+        /// <summary>
+        /// Helper Property: Ultimate Skill (aus ActiveSkills)
+        /// </summary>
+        public ISkill? UltimateSkill => ActiveSkills.FirstOrDefault(s => s.Type == SkillType.Ultimate);
+        
+        /// <summary>
+        /// Helper Property: Passive Skills (aus ActiveSkills)
+        /// </summary>
+        public List<ISkill> PassiveSkills => ActiveSkills.Where(s => s.Type == SkillType.Passive).ToList();
+        
         // Kill Tracking für Anti-Exploit
         private Domain.Progression.KillTracking? _killTracking;
         public Domain.Progression.KillTracking KillTracking

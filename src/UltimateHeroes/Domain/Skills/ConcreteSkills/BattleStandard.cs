@@ -1,7 +1,11 @@
 using System.Collections.Generic;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Core;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -56,10 +60,10 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             
             // Spawn banner particle
             var bannerPos = new Vector(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + 50);
-            GameHelpers.SpawnParticle(bannerPos, "particles/ui/ui_electric_exp_glow.vpcf", duration);
+            GameHelpersHelper.SpawnParticle(bannerPos, "particles/ui/ui_electric_exp_glow.vpcf", duration);
             
             // Find all allies in radius
-            var playersInRadius = GameHelpers.GetPlayersInRadius(pawn.AbsOrigin, radius);
+            var playersInRadius = GameHelpersHelper.GetPlayersInRadius(pawn.AbsOrigin, radius);
             
             int buffedCount = 0;
             

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -52,7 +52,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var forward = new Vector((float)forwardX, (float)forwardY, (float)forwardZ);
             
             // Spawn shockwave particle
-            GameHelpers.SpawnParticle(origin, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
+            GameHelpersHelper.SpawnParticle(origin, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
             
             // Find all players in cone
             var playersInCone = GetPlayersInCone(origin, forward, range, BaseConeAngle);
@@ -89,10 +89,10 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                     targetPawn.AbsOrigin.Z + direction.Z * knockbackForce * 0.1f
                 );
                 
-                GameHelpers.TeleportPlayer(target, knockbackPos);
+                GameHelpersHelper.TeleportPlayer(target, knockbackPos);
                 
                 // Apply damage
-                GameHelpers.DamagePlayer(target, damage, player);
+                GameHelpersHelper.DamagePlayer(target, damage, player);
                 totalDamageDealt += damage;
                 
                 target.PrintToChat($" {ChatColors.Orange}[Shockwave]{ChatColors.Default} Knocked back! Took {damage} damage!");

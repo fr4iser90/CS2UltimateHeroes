@@ -1,7 +1,11 @@
 using System.Collections.Generic;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Core;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -45,7 +49,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 if (reducedDamage < damage)
                 {
                     var healAmount = damage - reducedDamage;
-                    GameHelpers.HealPlayer(player, healAmount);
+                    GameHelpersHelper.HealPlayer(player, healAmount);
                     
                     player.PrintToChat($" {ChatColors.Blue}[Fortified Plating]{ChatColors.Default} Reduced {healAmount} damage!");
                 }

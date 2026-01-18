@@ -92,6 +92,8 @@ namespace UltimateHeroes.Application.Services
             playerItems.ActiveItems[itemId] = activeItem;
             
             // Store item modifiers in UltimatePlayer for damage/cooldown calculations
+            // Note: playerState access removed - modifiers should be stored via PlayerService
+            // This will be handled by the caller or via a different mechanism
             if (playerState != null)
             {
                 switch (item.Effect.Type)

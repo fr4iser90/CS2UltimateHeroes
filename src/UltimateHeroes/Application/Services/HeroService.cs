@@ -61,5 +61,29 @@ namespace UltimateHeroes.Application.Services
         {
             return _playerHeroes.GetValueOrDefault(steamId);
         }
+        
+        /// <summary>
+        /// Automatically registers all IHero implementations via Reflection
+        /// </summary>
+        public void RegisterHeroesViaReflection()
+        {
+            var heroType = typeof(IHero);
+            var heroTypes = System.Reflection.Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => heroType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+            
+            foreach (var type in heroTypes)
+            {
+                try
+                {
+                    var hero = (IHero)System.Activator.CreateInstance(type)!;
+                    RegisterHero(hero);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[HeroService] Failed to register hero {type.Name}: {ex.Message}");
+                }
+            }
+        }
     }
 }

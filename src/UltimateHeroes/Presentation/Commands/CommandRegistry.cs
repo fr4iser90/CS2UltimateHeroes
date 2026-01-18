@@ -21,7 +21,7 @@ namespace UltimateHeroes.Presentation.Commands
         public void RegisterHandler(ICommandHandler handler)
         {
             _handlers[handler.CommandName] = handler;
-            _plugin.RegisterCommand($"css_{handler.CommandName}", handler.Description, (player, info) => 
+            _plugin.AddCommand($"css_{handler.CommandName}", handler.Description, (player, info) => 
             {
                 handler.Handle(player, info);
             });

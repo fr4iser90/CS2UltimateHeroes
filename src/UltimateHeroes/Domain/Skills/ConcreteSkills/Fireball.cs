@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -36,13 +36,13 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var radius = BaseRadius + (CurrentLevel * 20);
             
             // Calculate explosion position (in front of player)
-            var explosionPos = GameHelpers.CalculatePositionInFront(player, ProjectileDistance, 20);
+            var explosionPos = GameHelpersHelper.CalculatePositionInFront(player, ProjectileDistance, 20);
             
             if (explosionPos == Vector.Zero) return;
             
             // Spawn explosion particle
-            GameHelpers.SpawnParticle(explosionPos, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
-            GameHelpers.SpawnParticle(explosionPos, "particles/weapons_fx/explosion_fireball.vpcf", 2f);
+            GameHelpersHelper.SpawnParticle(explosionPos, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
+            GameHelpersHelper.SpawnParticle(explosionPos, "particles/weapons_fx/explosion_fireball.vpcf", 2f);
             
             // Get talent modifiers for damage bonus
             // Note: Talent modifiers are applied via PlayerService, but we need to get them from the player state
@@ -53,13 +53,13 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             float totalDamageDealt = 0f;
             
             // Apply damage to all players in radius
-            var playersInRadius = GameHelpers.GetPlayersInRadius(explosionPos, radius);
+            var playersInRadius = GameHelpersHelper.GetPlayersInRadius(explosionPos, radius);
             foreach (var target in playersInRadius)
             {
                 if (target == player) continue; // Don't damage self
                 if (!target.IsValid || target.PlayerPawn.Value == null) continue;
                 
-                GameHelpers.DamagePlayer(target, damage, player, talentModifiers);
+                GameHelpersHelper.DamagePlayer(target, damage, player);
                 totalDamageDealt += damage;
                 target.PrintToChat($" {ChatColors.Orange}[Fireball]{ChatColors.Default} You took {damage} damage!");
             }

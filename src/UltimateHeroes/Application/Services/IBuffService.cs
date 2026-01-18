@@ -31,6 +31,10 @@ namespace UltimateHeroes.Application.Services
         void ApplyShield(string steamId, float damageReduction, float duration);
         void ApplyInfiniteAmmo(string steamId, float duration);
         
+        // Taunt Helpers
+        bool IsTaunted(string steamId);
+        string? GetTaunter(string steamId);
+        
         // Tick (should be called regularly)
         void TickBuffs();
     }

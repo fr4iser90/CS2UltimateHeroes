@@ -1,7 +1,13 @@
 using System.Collections.Generic;
+using UltimateHeroes.Infrastructure.Helpers;
+using CounterStrikeSharp.API;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Core;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -32,15 +38,15 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var range = BaseRange + (CurrentLevel * 100);
             
             // Calculate hook destination (in front of player, like a ping)
-            var hookPos = GameHelpers.CalculatePositionInFront(player, range, 0);
+            var hookPos = GameHelpersHelper.CalculatePositionInFront(player, range, 0);
             
             if (hookPos == Vector.Zero) return;
             
             // Spawn hook particle trail
-            GameHelpers.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
+            GameHelpersHelper.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
             
             // Teleport player to hook position (simplified - instant grapple)
-            GameHelpers.TeleportPlayer(player, hookPos);
+            GameHelpersHelper.TeleportPlayer(player, hookPos);
             
             // Spawn particle at destination
             Server.NextFrame(() =>
@@ -48,7 +54,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 if (player != null && player.IsValid && player.PlayerPawn.Value?.AbsOrigin != null)
                 {
                     var newPos = player.PlayerPawn.Value.AbsOrigin;
-                    GameHelpers.SpawnParticle(newPos, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
+                    GameHelpersHelper.SpawnParticle(newPos, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
                 }
             });
             

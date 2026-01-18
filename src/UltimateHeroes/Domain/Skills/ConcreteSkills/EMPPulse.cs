@@ -1,9 +1,15 @@
 using System.Collections.Generic;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Core;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Modules.Utils;
+using UltimateHeroes.Infrastructure.Helpers;
 using UltimateHeroes.Infrastructure.Effects;
+using UltimateHeroes.Infrastructure.Helpers;
 using UltimateHeroes.Infrastructure.Effects.ConcreteEffects;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -39,10 +45,10 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var duration = BaseDuration + (CurrentLevel * 0.5f);
             
             // Spawn EMP particle
-            GameHelpers.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", 2f);
+            GameHelpersHelper.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", 2f);
             
             // Find all enemies in radius
-            var playersInRadius = GameHelpers.GetPlayersInRadius(pawn.AbsOrigin, radius);
+            var playersInRadius = GameHelpersHelper.GetPlayersInRadius(pawn.AbsOrigin, radius);
             
             int disabledCount = 0;
             

@@ -74,9 +74,30 @@ namespace UltimateHeroes.Presentation.Menu
                             return;
                         }
                         
-                        var playerState = _playerService.GetPlayer(steamId);
-                        if (_shopService.PurchaseItem(steamId, itemId, p, playerState))
+                        if (_shopService.PurchaseItem(steamId, itemId, p))
                         {
+                            // Apply item modifiers to player state
+                            var playerState = _playerService.GetPlayer(steamId);
+                            if (playerState != null)
+                            {
+                                var item = _shopService.GetShopItem(itemId);
+                                if (item != null)
+                                {
+                                    switch (item.Effect.Type)
+                                    {
+                                        case ItemEffectType.DamageBoost:
+                                            var damagePercent = item.Effect.Parameters.GetValueOrDefault("amount", 0.10f);
+                                            playerState.ItemModifiers["damage_boost"] = damagePercent;
+                                            break;
+                                            
+                                        case ItemEffectType.CooldownReduction:
+                                            var cooldownReduction = item.Effect.Parameters.GetValueOrDefault("amount", 0.15f);
+                                            playerState.ItemModifiers["cooldown_reduction"] = cooldownReduction;
+                                            break;
+                                    }
+                                }
+                            }
+                            
                             // Refresh menu
                             ShowMenu(p);
                         }

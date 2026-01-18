@@ -17,8 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+using System;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Application.EventHandlers;
 using UltimateHeroes.Infrastructure.Configuration;
 using UltimateHeroes.Infrastructure.Plugin;

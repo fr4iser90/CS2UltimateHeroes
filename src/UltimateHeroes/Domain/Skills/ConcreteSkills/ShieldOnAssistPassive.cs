@@ -1,7 +1,11 @@
 using System.Collections.Generic;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Core;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -48,7 +52,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             }
             
             // Also add armor directly
-            GameHelpers.AddArmor(player, shieldAmount);
+            GameHelpersHelper.AddArmor(player, shieldAmount);
             
             player.PrintToChat($" {ChatColors.Blue}[Shield on Assist]{ChatColors.Default} +{shieldAmount} armor + shield!");
         }

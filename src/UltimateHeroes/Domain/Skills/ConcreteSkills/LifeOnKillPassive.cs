@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -37,7 +37,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var healAmount = BaseHealAmount + (CurrentLevel * 5); // 15-35 HP
             
             // Heal player
-            GameHelpers.HealPlayer(player, healAmount);
+            GameHelpersHelper.HealPlayer(player, healAmount);
             
             player.PrintToChat($" {ChatColors.Green}[Life on Kill]{ChatColors.Default} Healed {healAmount} HP!");
         }

@@ -28,6 +28,7 @@ namespace UltimateHeroes.Application.Services
         // Account Level Up
         void CheckAccountLevelUp(string steamId);
         void OnAccountLevelUp(string steamId, int newLevel, CCSPlayerController? player = null);
+        float CalculateHeroLevelUpAccountXp(int heroLevel);
         
         // Prestige
         bool CanPrestige(string steamId);

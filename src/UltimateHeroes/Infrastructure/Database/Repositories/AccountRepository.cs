@@ -1,3 +1,4 @@
+using System.Linq;
 using Dapper;
 using UltimateHeroes.Domain.Progression;
 using UltimateHeroes.Infrastructure.Database;

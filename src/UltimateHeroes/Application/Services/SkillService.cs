@@ -183,5 +183,29 @@ namespace UltimateHeroes.Application.Services
                 _cooldownManager.SetCooldown(steamId, skillId, newCooldown);
             }
         }
+        
+        /// <summary>
+        /// Automatically registers all ISkill implementations via Reflection
+        /// </summary>
+        public void RegisterSkillsViaReflection()
+        {
+            var skillType = typeof(ISkill);
+            var skillTypes = System.Reflection.Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => skillType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+            
+            foreach (var type in skillTypes)
+            {
+                try
+                {
+                    var skill = (ISkill)System.Activator.CreateInstance(type)!;
+                    RegisterSkill(skill);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[SkillService] Failed to register skill {type.Name}: {ex.Message}");
+                }
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Infrastructure.Effects;
 
 namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects

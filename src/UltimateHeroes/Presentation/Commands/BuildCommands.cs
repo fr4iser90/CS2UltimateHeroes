@@ -1,8 +1,10 @@
+using System;
 using System.Linq;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Application.Services;
+using UltimateHeroes.Domain.Skills;
 using UltimateHeroes.Presentation.Menu;
 
 namespace UltimateHeroes.Presentation.Commands
@@ -74,13 +76,18 @@ namespace UltimateHeroes.Presentation.Commands
             
             try
             {
+                // Find next available slot
+                var builds = _buildService.GetPlayerBuilds(steamId);
+                var nextSlot = builds.Count > 0 ? builds.Max(b => b.BuildSlot) + 1 : 1;
+                
                 var build = _buildService.CreateBuild(
                     steamId,
-                    buildName,
+                    nextSlot,
                     playerState.CurrentHero.Id,
-                    playerState.ActiveSkills.Select(s => s.Id).ToList(),
+                    playerState.ActiveSkills.Where(s => s.Type == SkillType.Active).Select(s => s.Id).ToList(),
                     playerState.UltimateSkill?.Id,
-                    playerState.PassiveSkills.Select(s => s.Id).ToList()
+                    playerState.PassiveSkills.Select(s => s.Id).ToList(),
+                    buildName
                 );
                 
                 player.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} Build '{buildName}' created!");
@@ -126,7 +133,17 @@ namespace UltimateHeroes.Presentation.Commands
             
             try
             {
-                _buildService.ActivateBuild(steamId, buildName);
+                // Find build by name
+                var builds = _buildService.GetPlayerBuilds(steamId);
+                var build = builds.FirstOrDefault(b => b.BuildName.Equals(buildName, StringComparison.OrdinalIgnoreCase));
+                
+                if (build == null)
+                {
+                    player.PrintToChat($" {ChatColors.Red}[Ultimate Heroes]{ChatColors.Default} Build '{buildName}' not found!");
+                    return;
+                }
+                
+                _buildService.ActivateBuild(steamId, build.BuildSlot, player);
                 player.PrintToChat($" {ChatColors.Green}[Ultimate Heroes]{ChatColors.Default} Build '{buildName}' activated!");
             }
             catch (Exception ex)

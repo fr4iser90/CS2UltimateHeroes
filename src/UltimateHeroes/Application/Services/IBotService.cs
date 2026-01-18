@@ -28,6 +28,11 @@ namespace UltimateHeroes.Application.Services
         // Bot Detection
         bool IsBot(CCSPlayerController player);
         bool IsBot(string steamId);
+        
+        // Bot Events
+        void OnBotKill(string steamId, string skillId = "", float damage = 0f);
+        void OnBotDeath(string steamId);
+        void CheckBuildChange(string steamId);
     }
     
     public class BotConfiguration

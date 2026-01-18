@@ -4,7 +4,6 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
-using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Application.Helpers
 {

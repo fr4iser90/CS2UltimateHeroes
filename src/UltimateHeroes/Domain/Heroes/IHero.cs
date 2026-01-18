@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CounterStrikeSharp.API.Core;
 using UltimateHeroes.Domain.Skills;
 
 namespace UltimateHeroes.Domain.Heroes
@@ -26,5 +27,10 @@ namespace UltimateHeroes.Domain.Heroes
         /// Hero Identity Auras (Modifier für Skills)
         /// </summary>
         HeroIdentity Identity { get; }
+        
+        /// <summary>
+        /// Wird aufgerufen wenn ein Spieler spawnt
+        /// </summary>
+        void OnPlayerSpawn(CCSPlayerController player);
     }
 }

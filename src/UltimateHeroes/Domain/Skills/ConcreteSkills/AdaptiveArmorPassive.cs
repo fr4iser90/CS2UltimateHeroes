@@ -1,7 +1,11 @@
 using System.Collections.Generic;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Core;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -39,7 +43,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var armorBonus = BaseArmorBonus + (CurrentLevel * 3); // 5-20 armor
             
             // Add adaptive armor
-            GameHelpers.AddArmor(player, armorBonus);
+            GameHelpersHelper.AddArmor(player, armorBonus);
             
             player.PrintToChat($" {ChatColors.Blue}[Adaptive Armor]{ChatColors.Default} +{armorBonus} armor (adaptive)!");
         }

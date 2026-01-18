@@ -1,8 +1,13 @@
 using System.Collections.Generic;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Core;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -30,17 +35,17 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             if (pawn.AbsOrigin == null || pawn.EyeAngles == null) return;
             
             // Calculate destination (far in front of player, like a ping)
-            var destination = GameHelpers.CalculatePositionInFront(player, MaxRange, 0);
+            var destination = GameHelpersHelper.CalculatePositionInFront(player, MaxRange, 0);
             
             if (destination == Vector.Zero) return;
             
             // Spawn particles at origin
             var originParticlePos = new Vector(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + 20);
-            GameHelpers.SpawnParticle(originParticlePos, "particles/ui/ui_electric_exp_glow.vpcf", 2f);
-            GameHelpers.SpawnParticle(pawn.AbsOrigin, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
+            GameHelpersHelper.SpawnParticle(originParticlePos, "particles/ui/ui_electric_exp_glow.vpcf", 2f);
+            GameHelpersHelper.SpawnParticle(pawn.AbsOrigin, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
             
             // Teleport player
-            GameHelpers.TeleportPlayer(player, destination);
+            GameHelpersHelper.TeleportPlayer(player, destination);
             
             // Spawn particles at destination
             Server.NextFrame(() =>
@@ -51,8 +56,8 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                     if (newPos != null)
                     {
                         var destParticlePos = new Vector(newPos.X, newPos.Y, newPos.Z + 20);
-                        GameHelpers.SpawnParticle(destParticlePos, "particles/ui/ui_electric_exp_glow.vpcf", 2f);
-                        GameHelpers.SpawnParticle(newPos, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
+                        GameHelpersHelper.SpawnParticle(destParticlePos, "particles/ui/ui_electric_exp_glow.vpcf", 2f);
+                        GameHelpersHelper.SpawnParticle(newPos, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
                     }
                 }
             });

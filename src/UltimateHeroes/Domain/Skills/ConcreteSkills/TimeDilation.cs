@@ -1,9 +1,17 @@
 using System.Collections.Generic;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Core;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Modules.Utils;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 using UltimateHeroes.Infrastructure.Effects;
+using UltimateHeroes.Infrastructure.Helpers;
 using UltimateHeroes.Infrastructure.Effects.ConcreteEffects;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -40,7 +48,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             slowMultiplier = System.Math.Max(slowMultiplier, 0.3f); // Cap at 30% speed
             
             // Spawn time dilation particle
-            GameHelpers.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", duration);
+            GameHelpersHelper.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", duration);
             
             // Apply slow to all enemies
             foreach (var target in Utilities.GetPlayers())

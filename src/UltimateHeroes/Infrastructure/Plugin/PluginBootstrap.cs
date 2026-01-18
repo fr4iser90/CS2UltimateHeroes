@@ -8,6 +8,7 @@ using UltimateHeroes.Domain.Heroes;
 using UltimateHeroes.Domain.Skills;
 using UltimateHeroes.Infrastructure.Cooldown;
 using UltimateHeroes.Infrastructure.Database.Repositories;
+using DatabaseClass = UltimateHeroes.Infrastructure.Database.Database;
 using UltimateHeroes.Infrastructure.Effects;
 using UltimateHeroes.Infrastructure.Events;
 using UltimateHeroes.Infrastructure.Helpers;
@@ -25,7 +26,7 @@ namespace UltimateHeroes.Infrastructure.Plugin
         private readonly BasePlugin _plugin;
         
         // Services
-        public UltimateHeroes.Infrastructure.Database.Database? Database { get; private set; }
+        public DatabaseClass? Database { get; private set; }
         public IPlayerRepository? PlayerRepository { get; private set; }
         public IBuildRepository? BuildRepository { get; private set; }
         public ICooldownManager? CooldownManager { get; private set; }
@@ -65,7 +66,7 @@ namespace UltimateHeroes.Infrastructure.Plugin
         {
             // Initialize Database
             var dbPath = Path.Combine(_moduleDirectory, "ultimateheroes.db");
-            Database = new UltimateHeroes.Infrastructure.Database.Database(dbPath);
+            Database = new DatabaseClass(dbPath);
             
             // Initialize Repositories
             PlayerRepository = new PlayerRepository(Database);
@@ -100,6 +101,10 @@ namespace UltimateHeroes.Infrastructure.Plugin
             // Initialize BuffService
             BuffService = new BuffService();
             BuffServiceHelper.SetBuffService(BuffService);
+            
+            // Initialize GameHelpersService and set in Helper
+            var gameHelpersService = new Application.Helpers.GameHelpersService();
+            GameHelpersHelper.SetGameHelpers(gameHelpersService);
             
             // Initialize SpawnService
             SpawnService = new SpawnService();

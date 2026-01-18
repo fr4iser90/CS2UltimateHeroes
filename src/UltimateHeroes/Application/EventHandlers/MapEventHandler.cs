@@ -1,3 +1,4 @@
+using System;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
@@ -51,6 +52,9 @@ namespace UltimateHeroes.Application.EventHandlers
         public void OnMapStart(string mapName)
         {
             System.Console.WriteLine($"[UltimateHeroes] Map started: {mapName}");
+            
+            // Reset Round Counter für neues Match
+            RoundEventHandler.ResetRoundCounter();
             
             // Award Match Completion XP für alle Spieler vom vorherigen Match
             var gameMode = GameModeDetector.DetectCurrentMode();

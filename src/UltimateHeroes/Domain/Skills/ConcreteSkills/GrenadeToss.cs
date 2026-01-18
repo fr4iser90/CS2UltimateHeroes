@@ -1,8 +1,15 @@
+using System;
+using UltimateHeroes.Infrastructure.Helpers;
 using System.Collections.Generic;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Core;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -38,12 +45,12 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var throwDistance = BaseThrowDistance + (CurrentLevel * 50);
             
             // Calculate throw position (in front of player, with arc)
-            var throwPos = GameHelpers.CalculatePositionInFront(player, throwDistance, 50);
+            var throwPos = GameHelpersHelper.CalculatePositionInFront(player, throwDistance, 50);
             
             if (throwPos == Vector.Zero) return;
             
             // Spawn grenade indicator particle
-            GameHelpers.SpawnParticle(throwPos, "particles/weapons_fx/explosion_fireball.vpcf", ExplosionDelay);
+            GameHelpersHelper.SpawnParticle(throwPos, "particles/weapons_fx/explosion_fireball.vpcf", ExplosionDelay);
             
             player.PrintToChat($" {ChatColors.Orange}[Grenade Toss]{ChatColors.Default} Grenade thrown! Explodes in {ExplosionDelay}s!");
             
@@ -74,11 +81,11 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                     if (finalPlayer == null || !finalPlayer.IsValid) return;
                     
                     // Spawn explosion particles
-                    GameHelpers.SpawnParticle(finalThrowPos, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
-                    GameHelpers.SpawnParticle(finalThrowPos, "particles/weapons_fx/explosion_fireball.vpcf", 2f);
+                    GameHelpersHelper.SpawnParticle(finalThrowPos, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
+                    GameHelpersHelper.SpawnParticle(finalThrowPos, "particles/weapons_fx/explosion_fireball.vpcf", 2f);
                     
                     // Apply damage to all players in radius
-                    var playersInRadius = GameHelpers.GetPlayersInRadius(finalThrowPos, finalRadius);
+                    var playersInRadius = GameHelpersHelper.GetPlayersInRadius(finalThrowPos, finalRadius);
                     
                     float totalDamageDealt = 0f;
                     
@@ -87,7 +94,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                         if (target == finalPlayer) continue;
                         if (!target.IsValid || target.PlayerPawn.Value == null) continue;
                         
-                        GameHelpers.DamagePlayer(target, finalDamage, finalPlayer);
+                        GameHelpersHelper.DamagePlayer(target, finalDamage, finalPlayer);
                         totalDamageDealt += finalDamage;
                         
                         target.PrintToChat($" {ChatColors.Orange}[Grenade Toss]{ChatColors.Default} Exploded! Took {finalDamage} damage!");

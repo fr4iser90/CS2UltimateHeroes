@@ -1,8 +1,13 @@
 using System.Collections.Generic;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Core;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -58,7 +63,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 }
                 
                 // Make enemy visible (remove invisibility if active)
-                GameHelpers.MakePlayerInvisible(target, false);
+                GameHelpersHelper.MakePlayerInvisible(target, false);
                 
                 revealedCount++;
                 

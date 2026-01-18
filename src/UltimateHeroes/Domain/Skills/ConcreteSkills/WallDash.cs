@@ -1,7 +1,13 @@
 using System.Collections.Generic;
+using UltimateHeroes.Infrastructure.Helpers;
+using CounterStrikeSharp.API;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Core;
+using UltimateHeroes.Infrastructure.Helpers;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Application.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -32,15 +38,15 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var dashDistance = BaseDashDistance + (CurrentLevel * 100);
             
             // Calculate dash direction (forward + slight upward)
-            var dashPos = GameHelpers.CalculatePositionInFront(player, dashDistance, 30);
+            var dashPos = GameHelpersHelper.CalculatePositionInFront(player, dashDistance, 30);
             
             if (dashPos == Vector.Zero) return;
             
             // Spawn dash particle
-            GameHelpers.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
+            GameHelpersHelper.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
             
             // Teleport player (simplified wall dash - just dash forward)
-            GameHelpers.TeleportPlayer(player, dashPos);
+            GameHelpersHelper.TeleportPlayer(player, dashPos);
             
             // Spawn particle at destination
             Server.NextFrame(() =>
@@ -48,7 +54,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 if (player != null && player.IsValid && player.PlayerPawn.Value?.AbsOrigin != null)
                 {
                     var newPos = player.PlayerPawn.Value.AbsOrigin;
-                    GameHelpers.SpawnParticle(newPos, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
+                    GameHelpersHelper.SpawnParticle(newPos, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
                 }
             });
             

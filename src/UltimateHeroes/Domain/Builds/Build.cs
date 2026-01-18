@@ -24,6 +24,23 @@ namespace UltimateHeroes.Domain.Builds
         public string? UltimateSkillId { get; set; } = null; // Max 1 Ultimate Skill (optional)
         public List<string> PassiveSkillIds { get; set; } = new(); // Max 2 Passive Skills
         
+        /// <summary>
+        /// Helper Property: Alle Skill IDs kombiniert (für Kompatibilität)
+        /// </summary>
+        public List<string> SkillIds
+        {
+            get
+            {
+                var allIds = new List<string>(ActiveSkillIds);
+                if (!string.IsNullOrEmpty(UltimateSkillId))
+                {
+                    allIds.Add(UltimateSkillId);
+                }
+                allIds.AddRange(PassiveSkillIds);
+                return allIds;
+            }
+        }
+        
         // Metadata
         public string BuildName { get; set; } = string.Empty;
         public bool IsActive { get; set; }

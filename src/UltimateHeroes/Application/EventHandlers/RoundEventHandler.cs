@@ -17,6 +17,9 @@ namespace UltimateHeroes.Application.EventHandlers
         private readonly IPlayerService _playerService;
         private readonly EventSystem _eventSystem;
         
+        // Round Number Tracking (statisch, da pro Match)
+        private static int _currentRoundNumber = 0;
+        
         public RoundEventHandler(
             IInMatchEvolutionService inMatchEvolutionService,
             IXpService xpService,
@@ -29,9 +32,28 @@ namespace UltimateHeroes.Application.EventHandlers
             _eventSystem = eventSystem;
         }
         
+        /// <summary>
+        /// Setzt Round Counter zurück (wird bei Map Start aufgerufen)
+        /// </summary>
+        public static void ResetRoundCounter()
+        {
+            _currentRoundNumber = 0;
+        }
+        
+        /// <summary>
+        /// Gibt aktuelle Round Number zurück
+        /// </summary>
+        public static int GetCurrentRoundNumber()
+        {
+            return _currentRoundNumber;
+        }
+        
         public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
         {
-            var roundNumber = @event.Round;
+            // Erhöhe Round Counter
+            _currentRoundNumber++;
+            var roundNumber = _currentRoundNumber;
+            
             var players = Utilities.GetPlayers();
             
             foreach (var player in players)
@@ -62,7 +84,7 @@ namespace UltimateHeroes.Application.EventHandlers
                 // Award Round Win XP (wenn gewonnen)
                 if (won)
                 {
-                    _xpService.AwardXp(steamId, XpSource.RoundWin, gameMode, false);
+                    _xpService.AwardXp(steamId, XpSource.RoundWin);
                 }
             }
             
