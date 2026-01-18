@@ -20,6 +20,7 @@ namespace UltimateHeroes.Application.Services
         private readonly ITalentService? _talentService;
         private readonly IAccountService? _accountService;
         private PluginConfiguration? _config;
+        private CounterStrikeSharp.API.Core.BasePlugin? _plugin;
         
         public XpService(
             IPlayerRepository playerRepository,
@@ -36,6 +37,11 @@ namespace UltimateHeroes.Application.Services
         public void SetConfig(PluginConfiguration config)
         {
             _config = config;
+        }
+        
+        public void SetPlugin(CounterStrikeSharp.API.Core.BasePlugin plugin)
+        {
+            _plugin = plugin;
         }
         
         public void AwardXp(string steamId, XpSource source, float amount)
@@ -204,7 +210,7 @@ namespace UltimateHeroes.Application.Services
                     {
                         if (playerController2 != null && playerController2.IsValid)
                         {
-                            PlayerNameHelper.RefreshPlayerName(playerController2, _playerService, _accountService, _config);
+                            PlayerNameHelper.RefreshPlayerName(playerController2, _playerService, _accountService, _config, _plugin);
                         }
                     });
                 }

@@ -1,6 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Application.Services;
 using UltimateHeroes.Infrastructure.Configuration;
@@ -19,16 +22,32 @@ namespace UltimateHeroes.Application.Helpers
             CCSPlayerController player,
             IPlayerService playerService,
             IAccountService? accountService,
-            PluginConfiguration config)
+            PluginConfiguration config,
+            BasePlugin? plugin = null)
         {
             if (player == null || !player.IsValid || player.AuthorizedSteamID == null) return;
             
             var settings = config.LeaderboardSettings;
-            if (!settings.Enabled || !settings.ShowHero && !settings.ShowLevel) return;
+            if (!settings.Enabled)
+            {
+                Console.WriteLine($"[PlayerNameHelper] Leaderboard disabled for {player.PlayerName}");
+                return;
+            }
+            
+            if (!settings.ShowHero && !settings.ShowLevel)
+            {
+                Console.WriteLine($"[PlayerNameHelper] Both ShowHero and ShowLevel are false for {player.PlayerName}");
+                return;
+            }
             
             var steamId = player.AuthorizedSteamID.SteamId64.ToString();
-            var playerState = playerService.GetPlayer(steamId);
-            if (playerState == null) return;
+            // Use GetOrCreatePlayer to ensure player exists
+            var playerState = playerService.GetOrCreatePlayer(steamId, player);
+            if (playerState == null)
+            {
+                Console.WriteLine($"[PlayerNameHelper] PlayerState is null for {player.PlayerName} (SteamID: {steamId})");
+                return;
+            }
             
             var playerNameClean = GetRealPlayerName(player);
             var parts = new List<string>();
@@ -59,16 +78,31 @@ namespace UltimateHeroes.Application.Helpers
                 ? $"{string.Join(" ", parts)} {playerNameClean}"
                 : playerNameClean;
             
+            Console.WriteLine($"[PlayerNameHelper] Updating name for {player.PlayerName} -> {playerNameWithPrefix} (Level: {playerState.HeroLevel}, Hero: {playerState.CurrentHero?.DisplayName ?? "None"})");
+            
             player.PlayerName = playerNameWithPrefix;
             Utilities.SetStateChanged(player, "CBasePlayerController", "m_iszPlayerName");
             
             // Update nach 1 Sekunde erneut (für Scoreboard-Refresh)
-            Server.NextFrame(() =>
+            if (plugin != null)
             {
-                if (player == null || !player.IsValid) return;
-                player.PlayerName = playerNameWithPrefix;
-                Utilities.SetStateChanged(player, "CBasePlayerController", "m_iszPlayerName");
-            });
+                plugin.AddTimer(1.0f, () =>
+                {
+                    if (player == null || !player.IsValid) return;
+                    player.PlayerName = playerNameWithPrefix;
+                    Utilities.SetStateChanged(player, "CBasePlayerController", "m_iszPlayerName");
+                });
+            }
+            else
+            {
+                // Fallback wenn kein Plugin übergeben wurde
+                Server.NextFrame(() =>
+                {
+                    if (player == null || !player.IsValid) return;
+                    player.PlayerName = playerNameWithPrefix;
+                    Utilities.SetStateChanged(player, "CBasePlayerController", "m_iszPlayerName");
+                });
+            }
         }
         
         /// <summary>
@@ -79,9 +113,20 @@ namespace UltimateHeroes.Application.Helpers
             if (player == null || !player.IsValid || string.IsNullOrEmpty(player.PlayerName))
                 return string.Empty;
             
-            // Entferne Pattern wie "5 [HeroName] RealName" oder "5 RealName"
-            var playerNameClean = Regex.Replace(player.PlayerName, @"^\d+\s*(\[.*?\]\s*)?", "");
-            return playerNameClean.Trim();
+            var currentName = player.PlayerName;
+            
+            // Entferne Pattern wie "5 [HeroName] RealName"
+            // Pattern: Zahl Leerzeichen [Text] Leerzeichen
+            var playerNameClean = Regex.Replace(currentName, @"\d+\s\[.*\]\s", "");
+            var cleaned = playerNameClean.Trim();
+            
+            // Falls der Name leer wird, verwende den originalen Namen
+            if (string.IsNullOrEmpty(cleaned))
+            {
+                return currentName;
+            }
+            
+            return cleaned;
         }
     }
 }

@@ -23,6 +23,8 @@ namespace UltimateHeroes.Application.EventHandlers
         private readonly HudManager _hudManager;
         private readonly IBotService _botService;
         private readonly IInMatchEvolutionService _inMatchEvolutionService;
+        private readonly IPlayerService _playerService;
+        private readonly IAccountService? _accountService;
         private readonly BasePlugin _plugin;
         private readonly PluginConfiguration? _config;
         
@@ -35,6 +37,8 @@ namespace UltimateHeroes.Application.EventHandlers
             HudManager hudManager,
             IBotService botService,
             IInMatchEvolutionService inMatchEvolutionService,
+            IPlayerService playerService,
+            IAccountService? accountService,
             BasePlugin plugin,
             PluginConfiguration? config = null)
         {
@@ -46,6 +50,8 @@ namespace UltimateHeroes.Application.EventHandlers
             _hudManager = hudManager;
             _botService = botService;
             _inMatchEvolutionService = inMatchEvolutionService;
+            _playerService = playerService;
+            _accountService = accountService;
             _plugin = plugin;
             _config = config;
         }
@@ -86,6 +92,23 @@ namespace UltimateHeroes.Application.EventHandlers
             _plugin.AddTimer(GameConstants.HudUpdateInterval, () =>
             {
                 _hudManager.UpdateHud();
+            }, TimerFlags.REPEAT);
+            
+            // Start Player Name update timer (for scoreboard) - update every 2 seconds
+            _plugin.AddTimer(2.0f, () =>
+            {
+                var players = Utilities.GetPlayers();
+                foreach (var player in players)
+                {
+                    if (player == null || !player.IsValid || player.AuthorizedSteamID == null) continue;
+                    Application.Helpers.PlayerNameHelper.RefreshPlayerName(
+                        player,
+                        _playerService,
+                        _accountService,
+                        _config,
+                        _plugin
+                    );
+                }
             }, TimerFlags.REPEAT);
             
             // Start Bot Build Change timer

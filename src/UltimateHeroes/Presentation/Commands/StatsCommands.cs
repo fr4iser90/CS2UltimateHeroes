@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
@@ -235,7 +236,11 @@ namespace UltimateHeroes.Presentation.Commands
                 {
                     var steamId = p.AuthorizedSteamID!.SteamId64.ToString();
                     var playerState = _playerService.GetPlayer(steamId);
-                    if (playerState == null) return null;
+                    if (playerState == null)
+                    {
+                        Console.WriteLine($"[LeaderboardCommand] PlayerState is null for {p.PlayerName} (SteamID: {steamId})");
+                        return null;
+                    }
                     
                     int level = 0;
                     if (settings.ShowLevel)

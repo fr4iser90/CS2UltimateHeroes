@@ -22,6 +22,7 @@ namespace UltimateHeroes.Application.EventHandlers
         private readonly string _defaultHero;
         private readonly PluginConfiguration _config;
         private readonly IAccountService? _accountService;
+        private readonly BasePlugin? _plugin;
         
         public PlayerEventHandler(
             IPlayerService playerService,
@@ -30,7 +31,8 @@ namespace UltimateHeroes.Application.EventHandlers
             EventSystem eventSystem,
             string defaultHero,
             PluginConfiguration config,
-            IAccountService? accountService = null)
+            IAccountService? accountService = null,
+            BasePlugin? plugin = null)
         {
             _playerService = playerService;
             _heroService = heroService;
@@ -39,6 +41,7 @@ namespace UltimateHeroes.Application.EventHandlers
             _defaultHero = defaultHero;
             _config = config;
             _accountService = accountService;
+            _plugin = plugin;
         }
         
         public void OnClientConnect(int playerSlot)
@@ -48,6 +51,15 @@ namespace UltimateHeroes.Application.EventHandlers
             
             var steamId = player.AuthorizedSteamID.SteamId64.ToString();
             _playerService.OnPlayerConnect(steamId, player);
+            
+            // Update player name after connect
+            Server.NextFrame(() =>
+            {
+                if (player != null && player.IsValid)
+                {
+                    PlayerNameHelper.RefreshPlayerName(player, _playerService, _accountService, _config, _plugin);
+                }
+            });
         }
         
         public void OnClientDisconnect(int playerSlot)
@@ -91,7 +103,7 @@ namespace UltimateHeroes.Application.EventHandlers
             {
                 if (player != null && player.IsValid)
                 {
-                    PlayerNameHelper.RefreshPlayerName(player, _playerService, _accountService, _config);
+                    PlayerNameHelper.RefreshPlayerName(player, _playerService, _accountService, _config, _plugin);
                 }
             });
         }

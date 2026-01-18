@@ -43,10 +43,12 @@ namespace UltimateHeroes
         {
             Config = config;
             
-            // Set config in XpService if bootstrap is already initialized
+            // Set config and plugin in XpService if bootstrap is already initialized
             if (_bootstrap?.XpService != null)
             {
-                ((Application.Services.XpService)_bootstrap.XpService).SetConfig(config);
+                var xpService = (Application.Services.XpService)_bootstrap.XpService;
+                xpService.SetConfig(config);
+                xpService.SetPlugin(this);
             }
         }
         
@@ -119,7 +121,8 @@ namespace UltimateHeroes
                 _bootstrap.EventSystem!,
                 Config.DefaultHero,
                 Config,
-                _bootstrap.AccountService
+                _bootstrap.AccountService,
+                this
             );
             
             _roundEventHandler = new RoundEventHandler(
@@ -138,6 +141,8 @@ namespace UltimateHeroes
                 _bootstrap.HudManager!,
                 _bootstrap.BotService!,
                 _bootstrap.InMatchEvolutionService!,
+                _bootstrap.PlayerService!,
+                _bootstrap.AccountService,
                 this,
                 Config
             );
