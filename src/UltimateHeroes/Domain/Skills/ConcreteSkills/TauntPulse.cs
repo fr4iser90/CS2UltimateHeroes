@@ -52,14 +52,16 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 if (target == player) continue;
                 if (!target.IsValid || target.AuthorizedSteamID == null) continue;
                 
-                // Apply Taunt Effect
+                // Apply Taunt Effect (via EffectManager, which uses BuffService internally)
                 if (EffectManager != null)
                 {
                     var targetSteamId = target.AuthorizedSteamID.SteamId64.ToString();
                     var effect = new TauntEffect
                     {
                         Duration = duration,
-                        TaunterSteamId = steamId
+                        TaunterSteamId = steamId,
+                        DamageReduction = 0.5f, // 50% damage reduction if not attacking taunter
+                        SpreadMultiplier = 2.0f // 2x weapon spread
                     };
                     EffectManager.ApplyEffect(targetSteamId, effect);
                     tauntedCount++;

@@ -29,13 +29,30 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             // Calculate duration based on level
             var duration = BaseDuration + (CurrentLevel * 2f);
             
-            // Reveal all enemies
+            // Create Reveal Buffs in Skill (not in Service)
+            var buffService = Infrastructure.Helpers.BuffServiceHelper.GetBuffService();
             int revealedCount = 0;
             
             foreach (var target in Utilities.GetPlayers())
             {
                 if (target == player) continue;
-                if (!target.IsValid) continue;
+                if (!target.IsValid || target.AuthorizedSteamID == null) continue;
+                
+                var targetSteamId = target.AuthorizedSteamID.SteamId64.ToString();
+                
+                // Create Reveal Buff
+                if (buffService != null)
+                {
+                    var revealBuff = new Domain.Buffs.Buff
+                    {
+                        Id = $"global_scan_reveal_{targetSteamId}", // Unique per player
+                        DisplayName = "Revealed",
+                        Type = Domain.Buffs.BuffType.Reveal,
+                        Duration = duration,
+                        StackingType = Domain.Buffs.BuffStackingType.Refresh
+                    };
+                    buffService.ApplyBuff(targetSteamId, revealBuff);
+                }
                 
                 // Make enemy visible (remove invisibility if active)
                 GameHelpers.MakePlayerInvisible(target, false);
@@ -48,8 +65,6 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             }
             
             player.PrintToChat($" {ChatColors.Gold}[Global Scan]{ChatColors.Default} Ultimate! Revealed {revealedCount} enemies for {duration:F1}s!");
-            
-            // TODO: Implement persistent reveal effect for duration
         }
     }
 }

@@ -1,12 +1,14 @@
 using System;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
+using UltimateHeroes.Application.Services;
 using UltimateHeroes.Infrastructure.Effects;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
 {
     /// <summary>
-    /// Taunt Effect - Zwingt Gegner, dich anzugreifen (simplified: Stun)
+    /// Taunt Effect - CS2-kompatibel: Reduced Damage + Weapon Spread (statt echter Aggro-Zwang)
     /// </summary>
     public class TauntEffect : IEffect
     {
@@ -16,40 +18,56 @@ namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
         public DateTime AppliedAt { get; set; }
         
         public string TaunterSteamId { get; set; } = string.Empty;
+        public float DamageReduction { get; set; } = 0.5f; // 50% damage reduction if not attacking taunter
+        public float SpreadMultiplier { get; set; } = 2.0f; // 2x weapon spread
         
         public void OnApply(CCSPlayerController player)
         {
-            if (player == null || !player.IsValid) return;
+            if (player == null || !player.IsValid || player.AuthorizedSteamID == null) return;
             
-            // Apply stun (disable movement)
-            if (player.PlayerPawn.Value?.MovementServices != null)
+            var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+            var buffService = BuffServiceHelper.GetBuffService();
+            
+            // Create Taunt Buff in Effect (not in Service)
+            if (buffService != null)
             {
-                player.PlayerPawn.Value.MovementServices.MoveSpeedFactor = 0f;
+                var tauntBuff = new Domain.Buffs.Buff
+                {
+                    Id = "taunt", // Fixed ID so it refreshes
+                    DisplayName = "Taunted",
+                    Type = Domain.Buffs.BuffType.Taunt,
+                    Duration = Duration,
+                    StackingType = Domain.Buffs.BuffStackingType.Refresh,
+                    Parameters = new System.Collections.Generic.Dictionary<string, float>
+                    {
+                        { "taunter_steamid", float.Parse(TaunterSteamId) }, // Hack: Store as float
+                        { "damage_reduction", DamageReduction },
+                        { "spread_multiplier", SpreadMultiplier }
+                    }
+                };
+                buffService.ApplyBuff(steamId, tauntBuff);
             }
             
-            player.PrintToChat($" {ChatColors.Red}[Taunt]{ChatColors.Default} You are taunted! You must attack the taunter!");
+            player.PrintToChat($" {ChatColors.Red}[Taunt]{ChatColors.Default} You are taunted! Attack the taunter or suffer {DamageReduction * 100:F0}% damage reduction + {SpreadMultiplier}x spread!");
         }
         
         public void OnTick(CCSPlayerController player)
         {
-            // Keep movement disabled
-            if (player != null && player.IsValid && player.PlayerPawn.Value?.MovementServices != null)
-            {
-                player.PlayerPawn.Value.MovementServices.MoveSpeedFactor = 0f;
-            }
+            // Taunt effects are handled by BuffService
+            // Weapon spread is applied via Weapon Modifier System (TODO)
         }
         
         public void OnRemove(CCSPlayerController player)
         {
-            if (player == null || !player.IsValid) return;
+            if (player == null || !player.IsValid || player.AuthorizedSteamID == null) return;
             
-            // Restore movement
-            if (player.PlayerPawn.Value?.MovementServices != null)
-            {
-                player.PlayerPawn.Value.MovementServices.MoveSpeedFactor = 1f;
-            }
+            var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+            var buffService = BuffServiceHelper.GetBuffService();
             
-            player.PrintToChat($" {ChatColors.Red}[Taunt]{ChatColors.Default} Taunt expired!");
+            // Remove taunt buff
+            buffService?.RemoveBuff(steamId, "taunt");
+            
+            player.PrintToChat($" {ChatColors.Green}[Taunt]{ChatColors.Default} Taunt expired!");
         }
         
         public bool IsExpired()

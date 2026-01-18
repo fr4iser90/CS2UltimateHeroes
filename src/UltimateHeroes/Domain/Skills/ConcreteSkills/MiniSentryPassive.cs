@@ -75,9 +75,12 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             }
         }
         
+        // SpawnService wird über Helper gesetzt
+        public static Application.Services.ISpawnService? SpawnService { get; set; }
+        
         private void PlaceSentry(CCSPlayerController player)
         {
-            if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return;
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || player.AuthorizedSteamID == null) return;
             
             var pawn = player.PlayerPawn.Value;
             if (pawn.AbsOrigin == null) return;
@@ -85,15 +88,17 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             // Calculate sentry stats based on level
             var damage = BaseDamage + (CurrentLevel * 3);
             var range = BaseRange + (CurrentLevel * 50);
+            var duration = 30f; // Sentry lasts 30 seconds
             
-            // Spawn sentry indicator particle
-            var sentryPos = new Vector(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + 10);
-            GameHelpers.SpawnParticle(sentryPos, "particles/ui/ui_electric_exp_glow.vpcf", 5f);
+            // Spawn sentry via SpawnService
+            if (SpawnService != null)
+            {
+                var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+                var sentryPos = new Vector(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + 10);
+                SpawnService.SpawnSentry(steamId, sentryPos, range, damage, duration);
+            }
             
             player.PrintToChat($" {ChatColors.Green}[Mini Sentry]{ChatColors.Default} Sentry placed! Damage: {damage}, Range: {range:F0}");
-            
-            // TODO: Implement actual sentry entity that attacks enemies
-            // For now, this is a placeholder that shows the sentry was placed
         }
     }
 }

@@ -23,9 +23,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
         private const float BaseDuration = 5f;
         private const float BaseDamageReduction = 0.5f; // 50%
         
-        // EffectManager wird über SkillService gesetzt
-        public static EffectManager? EffectManager { get; set; }
-        
+        // BuffService wird über Helper gesetzt
         public override void Activate(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.AuthorizedSteamID == null) return;
@@ -35,16 +33,24 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var damageReduction = BaseDamageReduction + (CurrentLevel * 0.05f); // 50% - 70%
             damageReduction = System.Math.Min(damageReduction, 0.8f); // Cap at 80%
             
-            // Apply Shield Effect
-            if (EffectManager != null)
+            // Create Shield Buff in Skill (not in Service)
+            var buffService = Infrastructure.Helpers.BuffServiceHelper.GetBuffService();
+            if (buffService != null)
             {
                 var steamId = player.AuthorizedSteamID.SteamId64.ToString();
-                var effect = new ShieldEffect
+                var shieldBuff = new Domain.Buffs.Buff
                 {
+                    Id = "energy_shield", // Fixed ID so it refreshes instead of stacking
+                    DisplayName = "Energy Shield",
+                    Type = Domain.Buffs.BuffType.Shield,
                     Duration = duration,
-                    DamageReduction = damageReduction
+                    StackingType = Domain.Buffs.BuffStackingType.Refresh,
+                    Parameters = new System.Collections.Generic.Dictionary<string, float>
+                    {
+                        { "damage_reduction", damageReduction }
+                    }
                 };
-                EffectManager.ApplyEffect(steamId, effect);
+                buffService.ApplyBuff(steamId, shieldBuff);
             }
             
             player.PrintToChat($" {ChatColors.Blue}[Energy Shield]{ChatColors.Default} Shield activated! {damageReduction * 100:F0}% damage reduction for {duration:F1}s!");

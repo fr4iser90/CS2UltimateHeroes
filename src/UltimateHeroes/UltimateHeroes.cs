@@ -113,6 +113,7 @@ namespace UltimateHeroes
         private Application.Services.IBotService? _botService;
         private Application.Services.IShopService? _shopService;
         private Application.Services.IAccountService? _accountService;
+        private Application.Services.IBuffService? _buffService;
         
         // Event Handlers
         private PlayerKillHandler? _playerKillHandler;
@@ -162,6 +163,20 @@ namespace UltimateHeroes
             
             // Initialize AccountService
             _accountService = new Application.Services.AccountService(accountRepository);
+            
+            // Initialize BuffService
+            _buffService = new Application.Services.BuffService();
+            Infrastructure.Helpers.BuffServiceHelper.SetBuffService(_buffService);
+            
+            // Initialize SpawnService
+            _spawnService = new Application.Services.SpawnService();
+            
+            // Initialize WeaponModifier
+            _weaponModifier = new Infrastructure.Weapons.WeaponModifier(_buffService);
+            
+            // Set SpawnService for skills that need it
+            Domain.Skills.ConcreteSkills.MiniSentryPassive.SpawnService = _spawnService;
+            Domain.Skills.ConcreteSkills.ScannerDrone.SpawnService = _spawnService;
             
             var buildValidator = new BuildValidator();
             _buildService = new BuildService(_buildRepository, _heroService, _skillService, buildValidator, _playerService, _talentService);
@@ -316,10 +331,18 @@ namespace UltimateHeroes
             // Reset Shop Items für alle Spieler (neues Match)
             _shopService?.ResetAllPlayersForNewMatch();
             
+            // Remove all spawned entities (sentries, drones, etc.)
+            _spawnService?.RemoveAllEntities();
+            
+            // Remove all spawned entities (sentries, drones, etc.)
+            _spawnService?.RemoveAllEntities();
+            
             // Start effect tick timer (every 0.5 seconds)
             AddTimer(0.5f, () =>
             {
                 _effectManager?.TickEffects();
+                _buffService?.TickBuffs();
+                _spawnService?.TickEntities();
             }, TimerFlags.REPEAT);
             
             // Start HUD update timer (every 0.5 seconds)

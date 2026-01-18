@@ -46,15 +46,50 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             
             int buffedCount = 0;
             
+            // Create Buffs in Skill (not in Service)
+            var buffService = Infrastructure.Helpers.BuffServiceHelper.GetBuffService();
+            
             foreach (var ally in playersInRadius)
             {
                 if (ally == player) continue;
-                if (!ally.IsValid) continue;
+                if (!ally.IsValid || ally.AuthorizedSteamID == null) continue;
                 
-                // Apply buffs (simplified - just notify)
-                // TODO: Implement actual buff system
+                var allySteamId = ally.AuthorizedSteamID.SteamId64.ToString();
+                
+                // Create Damage Boost Buff
+                if (buffService != null)
+                {
+                    var damageBuff = new Domain.Buffs.Buff
+                    {
+                        Id = $"battle_standard_damage_{allySteamId}", // Unique per player
+                        DisplayName = "Battle Standard - Damage",
+                        Type = Domain.Buffs.BuffType.DamageBoost,
+                        Duration = duration,
+                        StackingType = Domain.Buffs.BuffStackingType.Refresh,
+                        Parameters = new System.Collections.Generic.Dictionary<string, float>
+                        {
+                            { "multiplier", damageBonus }
+                        }
+                    };
+                    buffService.ApplyBuff(allySteamId, damageBuff);
+                    
+                    // Create Speed Boost Buff
+                    var speedBuff = new Domain.Buffs.Buff
+                    {
+                        Id = $"battle_standard_speed_{allySteamId}", // Unique per player
+                        DisplayName = "Battle Standard - Speed",
+                        Type = Domain.Buffs.BuffType.SpeedBoost,
+                        Duration = duration,
+                        StackingType = Domain.Buffs.BuffStackingType.Refresh,
+                        Parameters = new System.Collections.Generic.Dictionary<string, float>
+                        {
+                            { "multiplier", speedBonus }
+                        }
+                    };
+                    buffService.ApplyBuff(allySteamId, speedBuff);
+                }
+                
                 buffedCount++;
-                
                 ally.PrintToChat($" {ChatColors.Gold}[Battle Standard]{ChatColors.Default} Buffed! +{damageBonus * 100:F0}% damage, +{speedBonus * 100:F0}% speed!");
             }
             

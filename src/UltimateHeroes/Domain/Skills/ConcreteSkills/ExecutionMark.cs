@@ -26,9 +26,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
         private const float BaseDamageMultiplier = 2.0f;
         private const float BaseRange = 800f;
         
-        // EffectManager wird über SkillService gesetzt
-        public static EffectManager? EffectManager { get; set; }
-        
+        // BuffService wird über Helper gesetzt
         public override void Activate(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return;
@@ -72,16 +70,24 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 return;
             }
             
-            // Apply Execution Mark Effect
-            if (EffectManager != null)
+            // Create Execution Mark Buff in Skill (not in Service)
+            var buffService = Infrastructure.Helpers.BuffServiceHelper.GetBuffService();
+            if (buffService != null)
             {
                 var targetSteamId = target.AuthorizedSteamID.SteamId64.ToString();
-                var effect = new ExecutionMarkEffect
+                var executionMarkBuff = new Domain.Buffs.Buff
                 {
+                    Id = "execution_mark", // Fixed ID so it refreshes instead of stacking
+                    DisplayName = "Execution Mark",
+                    Type = Domain.Buffs.BuffType.ExecutionMark,
                     Duration = duration,
-                    DamageMultiplier = damageMultiplier
+                    StackingType = Domain.Buffs.BuffStackingType.Refresh,
+                    Parameters = new System.Collections.Generic.Dictionary<string, float>
+                    {
+                        { "damage_multiplier", damageMultiplier }
+                    }
                 };
-                EffectManager.ApplyEffect(targetSteamId, effect);
+                buffService.ApplyBuff(targetSteamId, executionMarkBuff);
             }
             
             // Spawn mark particle

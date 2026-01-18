@@ -85,7 +85,7 @@ namespace UltimateHeroes.Infrastructure.Helpers
         }
 
         /// <summary>
-        /// Fügt einem Spieler Schaden zu (mit Talent + Item Modifiers)
+        /// Fügt einem Spieler Schaden zu (mit Talent + Item Modifiers + Buffs)
         /// </summary>
         public static void DamagePlayer(CCSPlayerController player, int damage, CCSPlayerController? attacker = null, Dictionary<string, float>? attackerModifiers = null, Dictionary<string, float>? itemModifiers = null)
         {
@@ -94,6 +94,9 @@ namespace UltimateHeroes.Infrastructure.Helpers
 
             var pawn = player.PlayerPawn.Value;
             if (pawn.Health == null) return;
+            
+            var playerSteamId = player.AuthorizedSteamID?.SteamId64.ToString();
+            var attackerSteamId = attacker?.AuthorizedSteamID?.SteamId64.ToString();
 
             // Apply talent modifiers to damage (if attacker has modifiers)
             if (attackerModifiers != null)
@@ -115,6 +118,48 @@ namespace UltimateHeroes.Infrastructure.Helpers
                 if (itemModifiers.TryGetValue("damage_boost", out var itemDamageBoost))
                 {
                     damage = (int)(damage * (1f + itemDamageBoost));
+                }
+            }
+            
+            // Apply buffs (victim) - get from helper
+            var buffService = BuffServiceHelper.GetBuffService();
+            if (buffService != null && playerSteamId != null)
+            {
+                // Shield: Damage Reduction
+                var shieldReduction = buffService.GetBuffValue(playerSteamId, Domain.Buffs.BuffType.Shield, "damage_reduction", 0f);
+                if (shieldReduction > 0f)
+                {
+                    damage = (int)(damage * (1f - shieldReduction));
+                }
+                
+                // Execution Mark: Damage Multiplier (if marked)
+                var executionMultiplier = buffService.GetBuffValue(playerSteamId, Domain.Buffs.BuffType.ExecutionMark, "damage_multiplier", 1f);
+                if (executionMultiplier > 1f)
+                {
+                    damage = (int)(damage * executionMultiplier);
+                }
+                
+                // Taunt: Reduced damage if not attacking taunter
+                if (buffService.IsTaunted(playerSteamId))
+                {
+                    var taunterSteamId = buffService.GetTaunter(playerSteamId);
+                    // Check if attacker is NOT the taunter
+                    if (taunterSteamId != null && attackerSteamId != taunterSteamId)
+                    {
+                        var tauntDamageReduction = buffService.GetBuffValue(playerSteamId, Domain.Buffs.BuffType.Taunt, "damage_reduction", 0.5f);
+                        damage = (int)(damage * (1f - tauntDamageReduction));
+                    }
+                }
+            }
+            
+            // Apply buffs (attacker)
+            if (buffService != null && attackerSteamId != null)
+            {
+                // Damage Boost
+                var damageBoost = buffService.GetTotalBuffValue(attackerSteamId, Domain.Buffs.BuffType.DamageBoost, "multiplier", 0f);
+                if (damageBoost > 0f)
+                {
+                    damage = (int)(damage * (1f + damageBoost));
                 }
             }
 

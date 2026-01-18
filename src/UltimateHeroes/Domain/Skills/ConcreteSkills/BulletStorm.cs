@@ -23,9 +23,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
         private const float BaseDuration = 10f;
         private const float BaseFireRateMultiplier = 2.0f;
         
-        // EffectManager wird über SkillService gesetzt
-        public static EffectManager? EffectManager { get; set; }
-        
+        // BuffService wird über Helper gesetzt
         public override void Activate(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.AuthorizedSteamID == null) return;
@@ -34,19 +32,40 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var duration = BaseDuration + (CurrentLevel * 3f);
             var fireRateMultiplier = BaseFireRateMultiplier + (CurrentLevel * 0.3f);
             
-            // Apply Bullet Storm Effect
-            if (EffectManager != null)
+            // Create Bullet Storm Buffs in Skill (not in Service)
+            var buffService = Infrastructure.Helpers.BuffServiceHelper.GetBuffService();
+            if (buffService != null)
             {
                 var steamId = player.AuthorizedSteamID.SteamId64.ToString();
-                var effect = new BulletStormEffect
+                
+                // Create Infinite Ammo Buff
+                var infiniteAmmoBuff = new Domain.Buffs.Buff
                 {
+                    Id = "bullet_storm_infinite_ammo", // Fixed ID so it refreshes
+                    DisplayName = "Bullet Storm - Infinite Ammo",
+                    Type = Domain.Buffs.BuffType.InfiniteAmmo,
                     Duration = duration,
-                    FireRateMultiplier = fireRateMultiplier
+                    StackingType = Domain.Buffs.BuffStackingType.Refresh
                 };
-                EffectManager.ApplyEffect(steamId, effect);
+                buffService.ApplyBuff(steamId, infiniteAmmoBuff);
+                
+                // Create Fire Rate Boost Buff
+                var fireRateBuff = new Domain.Buffs.Buff
+                {
+                    Id = "bullet_storm_fire_rate", // Fixed ID so it refreshes
+                    DisplayName = "Bullet Storm - Fire Rate",
+                    Type = Domain.Buffs.BuffType.FireRateBoost,
+                    Duration = duration,
+                    StackingType = Domain.Buffs.BuffStackingType.Refresh,
+                    Parameters = new System.Collections.Generic.Dictionary<string, float>
+                    {
+                        { "multiplier", fireRateMultiplier - 1f } // e.g., 2.0x = +100% = 1.0 multiplier
+                    }
+                };
+                buffService.ApplyBuff(steamId, fireRateBuff);
             }
             
-            player.PrintToChat($" {ChatColors.Gold}[Bullet Storm]{ChatColors.Default} Ultimate! {fireRateMultiplier:F1}x fire rate for {duration:F1}s!");
+            player.PrintToChat($" {ChatColors.Gold}[Bullet Storm]{ChatColors.Default} Ultimate! {fireRateMultiplier:F1}x fire rate + infinite ammo for {duration:F1}s!");
         }
     }
 }

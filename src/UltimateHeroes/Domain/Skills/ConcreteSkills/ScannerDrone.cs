@@ -23,9 +23,12 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
         private const float BaseRadius = 500f;
         private const float BaseDuration = 8f;
         
+        // SpawnService wird über Helper gesetzt
+        public static Application.Services.ISpawnService? SpawnService { get; set; }
+        
         public override void Activate(CCSPlayerController player)
         {
-            if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return;
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || player.AuthorizedSteamID == null) return;
             
             var pawn = player.PlayerPawn.Value;
             if (pawn.AbsOrigin == null) return;
@@ -34,34 +37,14 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var radius = BaseRadius + (CurrentLevel * 100);
             var duration = BaseDuration + (CurrentLevel * 2f);
             
-            // Spawn drone particle
-            GameHelpers.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", duration);
-            
-            // Find all enemies in radius
-            var playersInRadius = GameHelpers.GetPlayersInRadius(pawn.AbsOrigin, radius);
-            
-            int revealedCount = 0;
-            
-            foreach (var target in playersInRadius)
+            // Spawn drone via SpawnService (persistent reveal)
+            if (SpawnService != null)
             {
-                if (target == player) continue;
-                if (!target.IsValid) continue;
-                
-                // Reveal enemy (make visible, remove stealth)
-                // Simplified: Just notify player
-                revealedCount++;
-                
-                // Make player visible (remove invisibility if active)
-                GameHelpers.MakePlayerInvisible(target, false);
-                
-                // Notify both players
-                player.PrintToChat($" {ChatColors.Green}[Scanner Drone]{ChatColors.Default} Revealed {target.PlayerName}!");
-                target.PrintToChat($" {ChatColors.Red}[Scanner Drone]{ChatColors.Default} You have been revealed!");
+                var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+                SpawnService.SpawnDrone(steamId, pawn.AbsOrigin, radius, duration);
             }
             
-            player.PrintToChat($" {ChatColors.Green}[Scanner Drone]{ChatColors.Default} Revealed {revealedCount} enemies! Duration: {duration:F1}s");
-            
-            // TODO: Implement persistent reveal effect for duration
+            player.PrintToChat($" {ChatColors.Green}[Scanner Drone]{ChatColors.Default} Drone deployed! Reveals enemies in {radius:F0} range for {duration:F1}s");
         }
     }
 }
