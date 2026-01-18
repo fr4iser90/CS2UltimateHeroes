@@ -15,11 +15,19 @@ namespace UltimateHeroes.Application.Services
         private readonly Dictionary<string, ISkill> _skills = new();
         private readonly ICooldownManager _cooldownManager;
         private readonly IPlayerService _playerService;
+        private readonly Infrastructure.Effects.EffectManager? _effectManager;
         
-        public SkillService(ICooldownManager cooldownManager, IPlayerService playerService)
+        public SkillService(ICooldownManager cooldownManager, IPlayerService playerService, Infrastructure.Effects.EffectManager? effectManager = null)
         {
             _cooldownManager = cooldownManager;
             _playerService = playerService;
+            _effectManager = effectManager;
+            
+            // Set EffectManager for skills that need it
+            if (_effectManager != null)
+            {
+                ConcreteSkills.Stealth.EffectManager = _effectManager;
+            }
         }
         
         public void RegisterSkill(ISkill skill)

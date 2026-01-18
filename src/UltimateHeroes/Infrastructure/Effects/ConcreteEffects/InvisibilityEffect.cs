@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
 {
@@ -13,32 +14,49 @@ namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
         public float Duration { get; set; } = 5f;
         public DateTime AppliedAt { get; set; }
         
+        private float _originalSpeed = 1f;
+        
         public void OnApply(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return;
             
-            // TODO: Make player invisible
-            // - Set alpha/visibility
-            // - Increase movement speed by 20%
+            // Make player invisible
+            GameHelpers.MakePlayerInvisible(player, true);
             
-            // Placeholder: Notify player
+            // Increase movement speed by 20%
+            var pawn = player.PlayerPawn.Value;
+            if (pawn.MovementServices != null)
+            {
+                _originalSpeed = pawn.MovementServices.MoveSpeedFactor;
+                pawn.MovementServices.MoveSpeedFactor = _originalSpeed * 1.2f;
+            }
+            
             player.PrintToChat($" {ChatColors.Purple}[Stealth]{ChatColors.Default} You are invisible for {Duration:F1}s!");
         }
         
         public void OnTick(CCSPlayerController player)
         {
             // Keep invisibility active
+            if (player != null && player.IsValid && player.PlayerPawn.Value != null)
+            {
+                GameHelpers.MakePlayerInvisible(player, true);
+            }
         }
         
         public void OnRemove(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return;
             
-            // TODO: Make player visible again
-            // - Reset alpha/visibility
-            // - Reset movement speed
+            // Make player visible again
+            GameHelpers.MakePlayerInvisible(player, false);
             
-            // Placeholder: Notify player
+            // Reset movement speed
+            var pawn = player.PlayerPawn.Value;
+            if (pawn.MovementServices != null)
+            {
+                pawn.MovementServices.MoveSpeedFactor = _originalSpeed;
+            }
+            
             player.PrintToChat($" {ChatColors.Default}[Stealth]{ChatColors.Default} Invisibility effect removed!");
         }
         

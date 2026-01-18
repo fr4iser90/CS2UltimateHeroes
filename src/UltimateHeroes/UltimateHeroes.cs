@@ -105,11 +105,14 @@ namespace UltimateHeroes
             // Initialize Services
             _playerService = new PlayerService(_playerRepository);
             _heroService = new HeroService();
-            _skillService = new SkillService(_cooldownManager, _playerService);
+            _skillService = new SkillService(_cooldownManager, _playerService, _effectManager);
             var buildValidator = new BuildValidator();
             _buildService = new BuildService(_buildRepository, _heroService, _skillService, buildValidator, _playerService);
             _talentService = new TalentService(talentRepository);
             _xpService = new XpService(_playerRepository, _playerService, _talentService);
+            
+            // Set TalentService in PlayerService for Talent Modifiers
+            _playerService.SetTalentService(_talentService);
             
             // Register Heroes
             _heroService.RegisterHeroes(new System.Collections.Generic.List<Domain.Heroes.IHero>
@@ -144,6 +147,7 @@ namespace UltimateHeroes
             _heroMenu = new HeroMenu(_heroService, _playerService);
             _buildMenu = new BuildMenu(_buildService, _playerService);
             _skillMenu = new SkillMenu(_skillService, _playerService, _cooldownManager);
+            _talentMenu = new Presentation.Menu.TalentMenu(_talentService, _playerService);
             
             // Register CounterStrikeSharp Events
             RegisterListener<Listeners.OnMapStart>(OnMapStart);
@@ -157,6 +161,7 @@ namespace UltimateHeroes
             RegisterCommand("css_hero", "Open hero selection menu", OnHeroCommand);
             RegisterCommand("css_build", "Open build menu", OnBuildCommand);
             RegisterCommand("css_skills", "Open skills menu", OnSkillsCommand);
+            RegisterCommand("css_talents", "Open talents menu", OnTalentsCommand);
             RegisterCommand("css_selecthero", "Select a hero", OnSelectHeroCommand);
             RegisterCommand("css_createbuild", "Create a build", OnCreateBuildCommand);
             RegisterCommand("css_activatebuild", "Activate a build", OnActivateBuildCommand);
@@ -293,6 +298,12 @@ namespace UltimateHeroes
         {
             if (player == null || !player.IsValid) return;
             _skillMenu?.ShowMenu(player);
+        }
+        
+        private void OnTalentsCommand(CCSPlayerController? player, CommandInfo commandInfo)
+        {
+            if (player == null || !player.IsValid) return;
+            _talentMenu?.ShowMenu(player);
         }
         
         private void OnSelectHeroCommand(CCSPlayerController? player, CommandInfo commandInfo)

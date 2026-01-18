@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -30,14 +32,34 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             // Calculate range based on level
             var range = BaseRange + (CurrentLevel * 50);
             
-            // TODO: Implement actual blink logic
-            // - Get player position and view angle
-            // - Calculate destination
-            // - Check for collisions
-            // - Teleport player
-            // - Apply invulnerability for 0.2s
+            // Calculate destination position
+            var destination = GameHelpers.CalculatePositionInFront(player, range);
             
-            // Placeholder: Just notify player
+            if (destination == Vector.Zero) return;
+            
+            // Spawn particles at origin
+            var originParticlePos = new Vector(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + 20);
+            GameHelpers.SpawnParticle(originParticlePos, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
+            GameHelpers.SpawnParticle(pawn.AbsOrigin, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 1f);
+            
+            // Teleport player
+            GameHelpers.TeleportPlayer(player, destination);
+            
+            // Spawn particles at destination
+            Server.NextFrame(() =>
+            {
+                if (player != null && player.IsValid && player.PlayerPawn.Value != null)
+                {
+                    var newPos = player.PlayerPawn.Value.AbsOrigin;
+                    if (newPos != null)
+                    {
+                        var destParticlePos = new Vector(newPos.X, newPos.Y, newPos.Z + 20);
+                        GameHelpers.SpawnParticle(destParticlePos, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
+                        GameHelpers.SpawnParticle(newPos, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 1f);
+                    }
+                }
+            });
+            
             player.PrintToChat($" {ChatColors.Cyan}[Blink]{ChatColors.Default} Teleported {range} units forward!");
         }
     }

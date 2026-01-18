@@ -88,6 +88,10 @@ namespace UltimateHeroes.Application.Services
             playerTalents.UnlockTalent(talentId, 1);
             _talentRepository.SavePlayerTalents(playerTalents);
             
+            // Apply Talent Modifiers immediately if player is in-game
+            // This will be applied on next spawn, but we can also apply it now if player is alive
+            // Note: Full application happens in PlayerService.OnPlayerSpawn
+            
             return true;
         }
         

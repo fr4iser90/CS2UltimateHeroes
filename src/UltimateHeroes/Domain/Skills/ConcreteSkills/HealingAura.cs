@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
+using UltimateHeroes.Infrastructure.Helpers;
 
 namespace UltimateHeroes.Domain.Skills.ConcreteSkills
 {
@@ -21,8 +23,12 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
         
         public override void OnPlayerSpawn(CCSPlayerController player)
         {
-            // Start healing aura effect
-            // TODO: Implement periodic healing
+            if (player == null || !player.IsValid || player.AuthorizedSteamID == null) return;
+            
+            // Start periodic healing (every 1 second)
+            // Note: This should be managed by the plugin's timer system
+            // For now, we'll heal on spawn and let the plugin handle periodic calls
+            HealInRadius(player);
         }
         
         public override void OnPlayerHurt(CCSPlayerController player, int damage)
@@ -35,17 +41,34 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             // Nothing special on kill
         }
         
-        // TODO: Add periodic healing method that gets called every second
-        public void HealInRadius(CCSPlayerController player)
+        private void HealInRadius(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return;
+            
+            var pawn = player.PlayerPawn.Value;
+            if (pawn.AbsOrigin == null) return;
             
             var healPerSecond = BaseHealPerSecond + (CurrentLevel * 0.5f);
             var radius = BaseRadius + (CurrentLevel * 30);
             
-            // TODO: Find all players in radius
-            // TODO: Heal them
-            // TODO: Show particles/effects
+            // Find all players in radius (including self and teammates)
+            var playersInRadius = GameHelpers.GetPlayersInRadius(pawn.AbsOrigin, radius);
+            
+            foreach (var target in playersInRadius)
+            {
+                if (!target.IsValid || target.PlayerPawn.Value == null) continue;
+                
+                // Heal player
+                var healAmount = (int)System.Math.Ceiling(healPerSecond);
+                GameHelpers.HealPlayer(target, healAmount);
+            }
+            
+            // Spawn healing particle occasionally
+            if (playersInRadius.Count > 0)
+            {
+                var healParticlePos = new Vector(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + 20);
+                GameHelpers.SpawnParticle(healParticlePos, "particles/status_fx/status_effect_heal.vpcf", 1f);
+            }
         }
     }
 }

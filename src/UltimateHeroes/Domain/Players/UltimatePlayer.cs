@@ -43,6 +43,9 @@ namespace UltimateHeroes.Domain.Players
         // Role Influence
         public RoleInfluence CurrentRole { get; set; } = RoleInfluence.None;
         
+        // Talent Modifiers (applied from TalentService)
+        public Dictionary<string, float> TalentModifiers { get; set; } = new(); // modifier_key -> value
+        
         /// <summary>
         /// Prüft ob ein Skill bereit ist (Cooldown abgelaufen)
         /// </summary>
