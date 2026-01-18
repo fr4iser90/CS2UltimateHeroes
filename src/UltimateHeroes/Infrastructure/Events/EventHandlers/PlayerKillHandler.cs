@@ -11,12 +11,14 @@ namespace UltimateHeroes.Infrastructure.Events.EventHandlers
         private readonly IXpService _xpService;
         private readonly IPlayerService _playerService;
         private readonly IMasteryService? _masteryService;
+        private readonly Application.Services.IInMatchEvolutionService? _inMatchEvolutionService;
         
-        public PlayerKillHandler(IXpService xpService, IPlayerService playerService, IMasteryService? masteryService = null)
+        public PlayerKillHandler(IXpService xpService, IPlayerService playerService, IMasteryService? masteryService = null, Application.Services.IInMatchEvolutionService? inMatchEvolutionService = null)
         {
             _xpService = xpService;
             _playerService = playerService;
             _masteryService = masteryService;
+            _inMatchEvolutionService = inMatchEvolutionService;
         }
         
         public void Handle(PlayerKillEvent eventData)
@@ -45,6 +47,12 @@ namespace UltimateHeroes.Infrastructure.Events.EventHandlers
             {
                 player.OnKill(eventData.Victim);
             }
+            
+            // Track kill for In-Match Evolution
+            _inMatchEvolutionService?.OnKill(eventData.KillerSteamId);
+            
+            // Track death for victim
+            _inMatchEvolutionService?.OnDeath(eventData.VictimSteamId);
         }
     }
 }

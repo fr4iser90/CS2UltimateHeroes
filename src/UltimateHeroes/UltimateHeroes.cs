@@ -77,6 +77,9 @@ namespace UltimateHeroes
         private IXpService? _xpService;
         private ITalentService? _talentService;
         private Application.Services.IMasteryService? _masteryService;
+        private Application.Services.IInMatchEvolutionService? _inMatchEvolutionService;
+        private Application.Services.IRoleInfluenceService? _roleInfluenceService;
+        private Application.Services.IBuildIntegrityService? _buildIntegrityService;
         
         // Event Handlers
         private PlayerKillHandler? _playerKillHandler;
@@ -119,6 +122,9 @@ namespace UltimateHeroes
             _buildService = new BuildService(_buildRepository, _heroService, _skillService, buildValidator, _playerService);
             _talentService = new TalentService(talentRepository);
             _xpService = new XpService(_playerRepository, _playerService, _talentService);
+            _inMatchEvolutionService = new Application.Services.InMatchEvolutionService(_playerService);
+            _roleInfluenceService = new Application.Services.RoleInfluenceService(_playerService);
+            _buildIntegrityService = new Application.Services.BuildIntegrityService(_skillService);
             
             // Set TalentService in PlayerService for Talent Modifiers
             _playerService.SetTalentService(_talentService);
@@ -174,6 +180,8 @@ namespace UltimateHeroes
             RegisterListener<Listeners.OnPlayerSpawn>(OnPlayerSpawn);
             RegisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
             RegisterEventHandler<EventPlayerHurt>(OnPlayerHurt);
+            RegisterEventHandler<EventRoundStart>(OnRoundStart);
+            RegisterEventHandler<EventRoundEnd>(OnRoundEnd);
             
             // Register Commands
             RegisterCommand("css_hero", "Open hero selection menu", OnHeroCommand);
@@ -211,6 +219,33 @@ namespace UltimateHeroes
             {
                 _hudManager?.UpdateHud();
             }, TimerFlags.REPEAT);
+            
+            // Start In-Match Evolution timer (for time-based modes)
+            var gameMode = Application.Services.GameModeDetector.DetectCurrentMode();
+            if (Application.Services.GameModeDetector.IsTimeBased(gameMode))
+            {
+                float matchStartTime = Server.CurrentTime;
+                AddTimer(1f, () =>
+                {
+                    var players = Utilities.GetPlayers();
+                    foreach (var player in players)
+                    {
+                        if (player == null || !player.IsValid || player.AuthorizedSteamID == null) continue;
+                        var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+                        float minutesElapsed = (Server.CurrentTime - matchStartTime) / 60f;
+                        _inMatchEvolutionService?.OnTimeUpdate(steamId, minutesElapsed);
+                    }
+                }, TimerFlags.REPEAT);
+            }
+            
+            // Reset match progress for all players on map start
+            var allPlayers = Utilities.GetPlayers();
+            foreach (var player in allPlayers)
+            {
+                if (player == null || !player.IsValid || player.AuthorizedSteamID == null) continue;
+                var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+                _inMatchEvolutionService?.ResetMatchProgress(steamId);
+            }
         }
         
         private void OnClientConnect(int playerSlot)
@@ -296,6 +331,37 @@ namespace UltimateHeroes
                 
                 // Disable HUD when player dies (will be re-enabled on spawn)
                 _hudManager?.DisableHud(victim);
+            }
+            
+            return HookResult.Continue;
+        }
+        
+        private HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
+        {
+            var roundNumber = @event.RoundNum;
+            var players = Utilities.GetPlayers();
+            
+            foreach (var player in players)
+            {
+                if (player == null || !player.IsValid || player.AuthorizedSteamID == null) continue;
+                var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+                _inMatchEvolutionService?.OnRoundStart(steamId, roundNumber);
+            }
+            
+            return HookResult.Continue;
+        }
+        
+        private HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
+        {
+            var winner = @event.Winner;
+            var players = Utilities.GetPlayers();
+            
+            foreach (var player in players)
+            {
+                if (player == null || !player.IsValid || player.AuthorizedSteamID == null) continue;
+                var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+                bool won = player.TeamNum == winner;
+                _inMatchEvolutionService?.OnRoundEnd(steamId, won);
             }
             
             return HookResult.Continue;
