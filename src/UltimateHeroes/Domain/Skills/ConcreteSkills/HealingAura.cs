@@ -57,7 +57,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var radius = BaseRadius + (CurrentLevel * 30);
             
             // Find all players in radius (including self and teammates)
-            var playersInRadius = GameHelpersHelper.GetPlayersInRadius(pawn.AbsOrigin, radius);
+            var playersInRadius = GameHelper.GetPlayersInRadius(pawn.AbsOrigin, radius);
             
             foreach (var target in playersInRadius)
             {
@@ -65,14 +65,14 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 
                 // Heal player
                 var healAmount = (int)System.Math.Ceiling(healPerSecond);
-                GameHelpersHelper.HealPlayer(target, healAmount);
+                GameHelper.HealPlayer(target, healAmount);
             }
             
             // Spawn healing particle occasionally
             if (playersInRadius.Count > 0)
             {
                 var healParticlePos = new Vector(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + 20);
-                GameHelpersHelper.SpawnParticle(healParticlePos, "particles/status_fx/status_effect_heal.vpcf", 1f);
+                GameHelper.SpawnParticle(healParticlePos, "particles/status_fx/status_effect_heal.vpcf", 1f);
             }
         }
     }

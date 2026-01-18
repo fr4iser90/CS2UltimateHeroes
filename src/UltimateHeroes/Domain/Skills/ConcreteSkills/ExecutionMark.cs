@@ -56,7 +56,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var range = BaseRange + (CurrentLevel * 200);
             
             // Calculate target position (in front of player)
-            var targetPos = GameHelpersHelper.CalculatePositionInFront(player, range, 0);
+            var targetPos = GameHelper.CalculatePositionInFront(player, range, 0);
             
             if (targetPos == Vector.Zero) return;
             
@@ -105,7 +105,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             if (target.PlayerPawn.Value?.AbsOrigin != null)
             {
                 var markPos = target.PlayerPawn.Value.AbsOrigin;
-                GameHelpersHelper.SpawnParticle(markPos, "particles/ui/ui_electric_exp_glow.vpcf", duration);
+                GameHelper.SpawnParticle(markPos, "particles/ui/ui_electric_exp_glow.vpcf", duration);
             }
             
             player.PrintToChat($" {ChatColors.Gold}[Execution Mark]{ChatColors.Default} Ultimate! Marked {target.PlayerName} for {duration:F1}s!");

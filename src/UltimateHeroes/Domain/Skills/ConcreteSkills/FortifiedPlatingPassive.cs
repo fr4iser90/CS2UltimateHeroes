@@ -49,7 +49,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 if (reducedDamage < damage)
                 {
                     var healAmount = damage - reducedDamage;
-                    GameHelpersHelper.HealPlayer(player, healAmount);
+                    GameHelper.HealPlayer(player, healAmount);
                     
                     player.PrintToChat($" {ChatColors.Blue}[Fortified Plating]{ChatColors.Default} Reduced {healAmount} damage!");
                 }

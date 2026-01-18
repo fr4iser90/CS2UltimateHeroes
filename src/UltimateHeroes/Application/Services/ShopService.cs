@@ -138,12 +138,12 @@ namespace UltimateHeroes.Application.Services
                     var armorAmount = (int)item.Effect.Parameters.GetValueOrDefault("amount", 50f);
                     var currentArmor = playerPawn.ArmorValue;
                     var newArmor = System.Math.Min(currentArmor + armorAmount, 100);
-                    GameHelpers.SetArmor(player, newArmor);
+                    GameHelper.SetArmor(player, newArmor);
                     break;
                     
                 case ItemEffectType.HealthBoost:
                     var healthAmount = (int)item.Effect.Parameters.GetValueOrDefault("amount", 20f);
-                    GameHelpers.HealPlayer(player, healthAmount);
+                    GameHelper.HealPlayer(player, healthAmount);
                     break;
                     
                 case ItemEffectType.SpeedBoost:
@@ -152,7 +152,7 @@ namespace UltimateHeroes.Application.Services
                     {
                         var baseSpeed = 1.0f; // Base movement speed
                         var newSpeed = baseSpeed * (1.0f + speedPercent);
-                        GameHelpers.SetMovementSpeed(player, newSpeed);
+                        GameHelper.SetMovementSpeed(player, newSpeed);
                     }
                     // Store in item modifiers for tracking
                     playerItems.ActiveItems[itemId].DurationSeconds = item.Effect.Parameters.GetValueOrDefault("duration", 0f);
@@ -186,7 +186,7 @@ namespace UltimateHeroes.Application.Services
                     // Reset movement speed to base
                     if (playerPawn.MovementServices != null)
                     {
-                        GameHelpers.SetMovementSpeed(player, 1.0f);
+                        GameHelper.SetMovementSpeed(player, 1.0f);
                     }
                     break;
                     

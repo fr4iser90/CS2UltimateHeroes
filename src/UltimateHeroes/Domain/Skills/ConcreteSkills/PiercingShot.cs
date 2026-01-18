@@ -51,7 +51,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var forward = new Vector((float)forwardX, (float)forwardY, (float)forwardZ);
             
             // Spawn projectile particle
-            GameHelpersHelper.SpawnParticle(origin, "particles/weapons_fx/explosion_fireball.vpcf", 1f);
+            GameHelper.SpawnParticle(origin, "particles/weapons_fx/explosion_fireball.vpcf", 1f);
             
             // Raycast to find all players in line
             var hitPlayers = GetPlayersInLine(origin, forward, range, maxPierces);
@@ -65,7 +65,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 if (!target.IsValid || target.PlayerPawn.Value == null) continue;
                 
                 // Apply damage
-                GameHelpersHelper.DamagePlayer(target, damage, player);
+                GameHelper.DamagePlayer(target, damage, player);
                 totalDamageDealt += damage;
                 pierceCount++;
                 
@@ -99,7 +99,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 );
                 
                 // Check for players at this distance
-                var nearbyPlayers = GameHelpersHelper.GetPlayersInRadius(checkPos, 50f);
+                var nearbyPlayers = GameHelper.GetPlayersInRadius(checkPos, 50f);
                 
                 foreach (var target in nearbyPlayers)
                 {

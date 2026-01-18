@@ -37,7 +37,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var healAmount = BaseHealAmount + (CurrentLevel * 5); // 15-35 HP
             
             // Heal player
-            GameHelpersHelper.HealPlayer(player, healAmount);
+            GameHelper.HealPlayer(player, healAmount);
             
             player.PrintToChat($" {ChatColors.Green}[Life on Kill]{ChatColors.Default} Healed {healAmount} HP!");
         }

@@ -38,15 +38,15 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var range = BaseRange + (CurrentLevel * 100);
             
             // Calculate hook destination (in front of player, like a ping)
-            var hookPos = GameHelpersHelper.CalculatePositionInFront(player, range, 0);
+            var hookPos = GameHelper.CalculatePositionInFront(player, range, 0);
             
             if (hookPos == Vector.Zero) return;
             
             // Spawn hook particle trail
-            GameHelpersHelper.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
+            GameHelper.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
             
             // Teleport player to hook position (simplified - instant grapple)
-            GameHelpersHelper.TeleportPlayer(player, hookPos);
+            GameHelper.TeleportPlayer(player, hookPos);
             
             // Spawn particle at destination
             Server.NextFrame(() =>
@@ -54,7 +54,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 if (player != null && player.IsValid && player.PlayerPawn.Value?.AbsOrigin != null)
                 {
                     var newPos = player.PlayerPawn.Value.AbsOrigin;
-                    GameHelpersHelper.SpawnParticle(newPos, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
+                    GameHelper.SpawnParticle(newPos, "particles/ui/ui_electric_exp_glow.vpcf", 1f);
                 }
             });
             

@@ -104,7 +104,7 @@ namespace UltimateHeroes.Infrastructure.Plugin
             
             // Initialize GameHelpersService and set in Helper
             var gameHelpersService = new Application.Helpers.GameHelpersService();
-            GameHelpersHelper.SetGameHelpers(gameHelpersService);
+            GameHelper.SetGameHelpers(gameHelpersService);
             
             // Initialize SpawnService
             SpawnService = new SpawnService();

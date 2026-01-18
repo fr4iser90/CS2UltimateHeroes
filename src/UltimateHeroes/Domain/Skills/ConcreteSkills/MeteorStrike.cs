@@ -45,12 +45,12 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var range = BaseRange + (CurrentLevel * 200);
             
             // Calculate impact position (far in front of player, like a ping)
-            var impactPos = GameHelpersHelper.CalculatePositionInFront(player, range, 0);
+            var impactPos = GameHelper.CalculatePositionInFront(player, range, 0);
             
             if (impactPos == Vector.Zero) return;
             
             // Spawn warning particle
-            GameHelpersHelper.SpawnParticle(impactPos, "particles/weapons_fx/explosion_fireball.vpcf", ImpactDelay);
+            GameHelper.SpawnParticle(impactPos, "particles/weapons_fx/explosion_fireball.vpcf", ImpactDelay);
             
             // Notify all players
             foreach (var p in Utilities.GetPlayers())
@@ -88,11 +88,11 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                     if (finalPlayer == null || !finalPlayer.IsValid) return;
                     
                     // Spawn massive explosion particles
-                    GameHelpersHelper.SpawnParticle(finalImpactPos, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 3f);
-                    GameHelpersHelper.SpawnParticle(finalImpactPos, "particles/weapons_fx/explosion_fireball.vpcf", 3f);
+                    GameHelper.SpawnParticle(finalImpactPos, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 3f);
+                    GameHelper.SpawnParticle(finalImpactPos, "particles/weapons_fx/explosion_fireball.vpcf", 3f);
                     
                     // Apply damage to all players in radius
-                    var playersInRadius = GameHelpersHelper.GetPlayersInRadius(finalImpactPos, finalRadius);
+                    var playersInRadius = GameHelper.GetPlayersInRadius(finalImpactPos, finalRadius);
                     
                     float totalDamageDealt = 0f;
                     
@@ -101,7 +101,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                         if (target == finalPlayer) continue;
                         if (!target.IsValid || target.PlayerPawn.Value == null) continue;
                         
-                        GameHelpersHelper.DamagePlayer(target, finalDamage, finalPlayer);
+                        GameHelper.DamagePlayer(target, finalDamage, finalPlayer);
                         totalDamageDealt += finalDamage;
                         
                         target.PrintToChat($" {ChatColors.Red}[Meteor Strike]{ChatColors.Default} IMPACT! Took {finalDamage} damage!");

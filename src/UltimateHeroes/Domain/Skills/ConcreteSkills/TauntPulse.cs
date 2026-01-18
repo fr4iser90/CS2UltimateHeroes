@@ -45,10 +45,10 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var duration = BaseDuration + (CurrentLevel * 0.5f);
             
             // Spawn pulse particle
-            GameHelpersHelper.SpawnParticle(pawn.AbsOrigin, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
+            GameHelper.SpawnParticle(pawn.AbsOrigin, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
             
             // Find all enemies in radius
-            var playersInRadius = GameHelpersHelper.GetPlayersInRadius(pawn.AbsOrigin, radius);
+            var playersInRadius = GameHelper.GetPlayersInRadius(pawn.AbsOrigin, radius);
             var steamId = player.AuthorizedSteamID.SteamId64.ToString();
             
             int tauntedCount = 0;

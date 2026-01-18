@@ -1,7 +1,7 @@
 using System;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Application.Helpers;
 
 namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
 {

@@ -43,7 +43,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var armorBonus = BaseArmorBonus + (CurrentLevel * 3); // 5-20 armor
             
             // Add adaptive armor
-            GameHelpersHelper.AddArmor(player, armorBonus);
+            GameHelper.AddArmor(player, armorBonus);
             
             player.PrintToChat($" {ChatColors.Blue}[Adaptive Armor]{ChatColors.Default} +{armorBonus} armor (adaptive)!");
         }

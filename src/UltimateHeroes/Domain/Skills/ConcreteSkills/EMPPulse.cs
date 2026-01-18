@@ -45,10 +45,10 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var duration = BaseDuration + (CurrentLevel * 0.5f);
             
             // Spawn EMP particle
-            GameHelpersHelper.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", 2f);
+            GameHelper.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", 2f);
             
             // Find all enemies in radius
-            var playersInRadius = GameHelpersHelper.GetPlayersInRadius(pawn.AbsOrigin, radius);
+            var playersInRadius = GameHelper.GetPlayersInRadius(pawn.AbsOrigin, radius);
             
             int disabledCount = 0;
             

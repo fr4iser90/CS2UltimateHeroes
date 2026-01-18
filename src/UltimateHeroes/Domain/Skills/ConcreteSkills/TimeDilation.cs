@@ -48,7 +48,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             slowMultiplier = System.Math.Max(slowMultiplier, 0.3f); // Cap at 30% speed
             
             // Spawn time dilation particle
-            GameHelpersHelper.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", duration);
+            GameHelper.SpawnParticle(pawn.AbsOrigin, "particles/ui/ui_electric_exp_glow.vpcf", duration);
             
             // Apply slow to all enemies
             foreach (var target in Utilities.GetPlayers())

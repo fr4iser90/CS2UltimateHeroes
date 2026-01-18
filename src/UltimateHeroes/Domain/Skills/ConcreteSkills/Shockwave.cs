@@ -52,7 +52,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             var forward = new Vector((float)forwardX, (float)forwardY, (float)forwardZ);
             
             // Spawn shockwave particle
-            GameHelpersHelper.SpawnParticle(origin, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
+            GameHelper.SpawnParticle(origin, "particles/explosions_fx/explosion_smokegrenade_distort.vpcf", 2f);
             
             // Find all players in cone
             var playersInCone = GetPlayersInCone(origin, forward, range, BaseConeAngle);
@@ -89,10 +89,10 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                     targetPawn.AbsOrigin.Z + direction.Z * knockbackForce * 0.1f
                 );
                 
-                GameHelpersHelper.TeleportPlayer(target, knockbackPos);
+                GameHelper.TeleportPlayer(target, knockbackPos);
                 
                 // Apply damage
-                GameHelpersHelper.DamagePlayer(target, damage, player);
+                GameHelper.DamagePlayer(target, damage, player);
                 totalDamageDealt += damage;
                 
                 target.PrintToChat($" {ChatColors.Orange}[Shockwave]{ChatColors.Default} Knocked back! Took {damage} damage!");

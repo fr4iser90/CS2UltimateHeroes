@@ -63,7 +63,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 }
                 
                 // Make enemy visible (remove invisibility if active)
-                GameHelpersHelper.MakePlayerInvisible(target, false);
+                GameHelper.MakePlayerInvisible(target, false);
                 
                 revealedCount++;
                 

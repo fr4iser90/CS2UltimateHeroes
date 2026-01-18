@@ -52,7 +52,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             }
             
             // Also add armor directly
-            GameHelpersHelper.AddArmor(player, shieldAmount);
+            GameHelper.AddArmor(player, shieldAmount);
             
             player.PrintToChat($" {ChatColors.Blue}[Shield on Assist]{ChatColors.Default} +{shieldAmount} armor + shield!");
         }

@@ -63,7 +63,7 @@ namespace UltimateHeroes.Application.Services
             _playerEntities[ownerSteamId].Add(entityId);
             
             // Spawn visual indicator
-            GameHelpers.SpawnParticle(position, "particles/ui/ui_electric_exp_glow.vpcf", duration);
+            GameHelper.SpawnParticle(position, "particles/ui/ui_electric_exp_glow.vpcf", duration);
             
             return entityId;
         }
@@ -92,7 +92,7 @@ namespace UltimateHeroes.Application.Services
             _playerEntities[ownerSteamId].Add(entityId);
             
             // Spawn visual indicator
-            GameHelpers.SpawnParticle(position, "particles/ui/ui_electric_exp_glow.vpcf", duration);
+            GameHelper.SpawnParticle(position, "particles/ui/ui_electric_exp_glow.vpcf", duration);
             
             return entityId;
         }
@@ -184,7 +184,7 @@ namespace UltimateHeroes.Application.Services
         private void AttackWithSentry(SpawnedEntity entity)
         {
             // Find enemies in range
-            var enemies = GameHelpers.GetPlayersInRadius(entity.Position, entity.Range);
+            var enemies = GameHelper.GetPlayersInRadius(entity.Position, entity.Range);
             
             // Find closest enemy (not owner)
             CCSPlayerController? target = null;
@@ -211,13 +211,13 @@ namespace UltimateHeroes.Application.Services
             {
                 // Damage target
                 var owner = Utilities.GetPlayers().FirstOrDefault(p => p.SteamID.ToString() == entity.OwnerSteamId);
-                GameHelpers.DamagePlayer(target, entity.Damage, owner);
+                GameHelper.DamagePlayer(target, entity.Damage, owner);
                 
                 // Spawn attack particle
                 var targetPos = target.PlayerPawn.Value?.AbsOrigin;
                 if (targetPos != null)
                 {
-                    GameHelpers.SpawnParticle(targetPos, "particles/weapons_fx/explosion_fireball.vpcf", 0.5f);
+                    GameHelper.SpawnParticle(targetPos, "particles/weapons_fx/explosion_fireball.vpcf", 0.5f);
                 }
             }
         }
@@ -225,7 +225,7 @@ namespace UltimateHeroes.Application.Services
         private void RevealWithDrone(SpawnedEntity entity)
         {
             // Find enemies in range and reveal them
-            var enemies = GameHelpers.GetPlayersInRadius(entity.Position, entity.Range);
+            var enemies = GameHelper.GetPlayersInRadius(entity.Position, entity.Range);
             
             foreach (var enemy in enemies)
             {
@@ -234,7 +234,7 @@ namespace UltimateHeroes.Application.Services
                 if (enemySteamId == entity.OwnerSteamId) continue; // Don't reveal owner
                 
                 // Make enemy visible
-                GameHelpers.MakePlayerInvisible(enemy, false);
+                GameHelper.MakePlayerInvisible(enemy, false);
             }
         }
     }
