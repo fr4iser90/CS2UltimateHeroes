@@ -1,9 +1,9 @@
 using System;
+using System.Reflection;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
-using ConVar = CounterStrikeSharp.API.Core.ConVar;
 
 namespace UltimateHeroes.Infrastructure.Testing
 {
@@ -135,40 +135,84 @@ namespace UltimateHeroes.Infrastructure.Testing
         {
             Console.WriteLine("[API Test] Testing ConVars");
             
-            // Test weapon spread ConVar
-            var spreadConVar = ConVar.Find("weapon_accuracy_nospread");
-            if (spreadConVar != null)
-            {
-                Console.WriteLine($"[API Test] ✅ weapon_accuracy_nospread ConVar EXISTS");
-                Console.WriteLine($"  - Value: {spreadConVar.GetPrimitiveValue<int>()}");
-            }
-            else
-            {
-                Console.WriteLine("[API Test] ❌ weapon_accuracy_nospread ConVar NOT FOUND");
-            }
+            // Try different possible ConVar API locations via Reflection
+            TestConVarViaReflection("CounterStrikeSharp.API.Core.ConVar", "weapon_accuracy_nospread");
+            TestConVarViaReflection("CounterStrikeSharp.API.ConVar", "weapon_accuracy_nospread");
+            TestConVarViaReflection("CounterStrikeSharp.API.Modules.Cvars.ConVar", "weapon_accuracy_nospread");
             
-            // Test jump ConVar
-            var jumpConVar = ConVar.Find("sv_jump_impulse");
-            if (jumpConVar != null)
+            // Try via Server class methods
+            TestConVarViaServer("weapon_accuracy_nospread");
+            TestConVarViaServer("sv_jump_impulse");
+            TestConVarViaServer("sv_footsteps");
+        }
+        
+        private void TestConVarViaReflection(string namespacePath, string conVarName)
+        {
+            try
             {
-                Console.WriteLine($"[API Test] ✅ sv_jump_impulse ConVar EXISTS");
-                Console.WriteLine($"  - Value: {jumpConVar.GetPrimitiveValue<float>()}");
+                var type = Type.GetType($"{namespacePath}, CounterStrikeSharp.API");
+                if (type != null)
+                {
+                    var findMethod = type.GetMethod("Find", new[] { typeof(string) });
+                    if (findMethod != null && findMethod.IsStatic)
+                    {
+                        var conVar = findMethod.Invoke(null, new object[] { conVarName });
+                        if (conVar != null)
+                        {
+                            Console.WriteLine($"[API Test] ✅ ConVar API found at: {namespacePath}");
+                            Console.WriteLine($"[API Test] ✅ {conVarName} ConVar EXISTS");
+                            
+                            // Try to get value
+                            var getValueMethod = conVar.GetType().GetMethod("GetPrimitiveValue");
+                            if (getValueMethod != null)
+                            {
+                                var genericMethod = getValueMethod.MakeGenericMethod(typeof(int));
+                                var value = genericMethod.Invoke(conVar, null);
+                                Console.WriteLine($"  - Value: {value}");
+                            }
+                            return;
+                        }
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("[API Test] ❌ sv_jump_impulse ConVar NOT FOUND");
+                // Silently try next namespace
             }
-            
-            // Test footstep ConVar
-            var footstepConVar = ConVar.Find("sv_footsteps");
-            if (footstepConVar != null)
+        }
+        
+        private void TestConVarViaServer(string conVarName)
+        {
+            try
             {
-                Console.WriteLine($"[API Test] ✅ sv_footsteps ConVar EXISTS");
-                Console.WriteLine($"  - Value: {footstepConVar.GetPrimitiveValue<int>()}");
+                // Try Server.ExecuteCommand or similar methods
+                var serverType = typeof(Server);
+                var methods = serverType.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                
+                foreach (var method in methods)
+                {
+                    if (method.Name.Contains("ConVar") || method.Name.Contains("Cvar") || method.Name.Contains("Get"))
+                    {
+                        Console.WriteLine($"[API Test] Found potential ConVar method: {method.Name}");
+                        try
+                        {
+                            // Try to call it
+                            var result = method.Invoke(null, new object[] { conVarName });
+                            if (result != null)
+                            {
+                                Console.WriteLine($"[API Test] ✅ {conVarName} accessible via {method.Name}: {result}");
+                            }
+                        }
+                        catch
+                        {
+                            // Try next method
+                        }
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("[API Test] ❌ sv_footsteps ConVar NOT FOUND");
+                Console.WriteLine($"[API Test] Server-based ConVar test failed: {ex.Message}");
             }
         }
 

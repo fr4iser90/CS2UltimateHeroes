@@ -1,3 +1,4 @@
+using System;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
@@ -25,21 +26,37 @@ namespace UltimateHeroes.Application.Services
         public static GameMode DetectCurrentMode()
         {
             // Prüfe Server-Variablen via ConVar
+            // Note: ConVar API not available at compile time - will be tested at runtime
+            // For now, skip ConVar-based detection and use map name fallback
             try
             {
-                var gamemodeCvar = CounterStrikeSharp.API.Core.ConVar.Find("mp_gamemode");
-                if (gamemodeCvar != null)
+                // Try to find ConVar via Reflection (runtime test)
+                var conVarType = Type.GetType("CounterStrikeSharp.API.Core.ConVar, CounterStrikeSharp.API");
+                if (conVarType != null)
                 {
-                    var mode = gamemodeCvar.GetPrimitiveValue<string>();
-                    if (!string.IsNullOrEmpty(mode))
+                    var findMethod = conVarType.GetMethod("Find", new[] { typeof(string) });
+                    if (findMethod != null && findMethod.IsStatic)
                     {
-                        return ParseGameMode(mode);
+                        var gamemodeCvar = findMethod.Invoke(null, new object[] { "mp_gamemode" });
+                        if (gamemodeCvar != null)
+                        {
+                            var getValueMethod = gamemodeCvar.GetType().GetMethod("GetPrimitiveValue");
+                            if (getValueMethod != null)
+                            {
+                                var genericMethod = getValueMethod.MakeGenericMethod(typeof(string));
+                                var mode = genericMethod.Invoke(gamemodeCvar, null) as string;
+                                if (!string.IsNullOrEmpty(mode))
+                                {
+                                    return ParseGameMode(mode);
+                                }
+                            }
+                        }
                     }
                 }
             }
             catch
             {
-                // Fallback
+                // Fallback to map name
             }
             
             // Prüfe Map-Name (Fallback)

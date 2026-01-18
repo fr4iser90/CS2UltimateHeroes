@@ -62,7 +62,8 @@ namespace UltimateHeroes.Presentation.UI
             {
                 if (player == null || !player.IsValid || player.PlayerPawn.Value == null) continue;
                 // Note: IsAlive doesn't exist on CCSPlayerPawn, check Health instead
-                if (player.PlayerPawn.Value.Health == null || player.PlayerPawn.Value.Health.Value <= 0) continue;
+                // Note: Health is int, not int? - use directly
+                if (player.PlayerPawn.Value.Health <= 0) continue;
                 if (!_enabledPlayers.Contains(player.Slot)) continue;
                 if (player.AuthorizedSteamID == null) continue;
                 

@@ -138,9 +138,10 @@ namespace UltimateHeroes.Application.Services
                         {
                             // Apply HP Cost
                             var hpCost = overclock.GetHpCost();
-                            if (player.PlayerPawn.Value?.Health != null)
+                            if (player.PlayerPawn.Value != null)
                             {
-                                var currentHealth = player.PlayerPawn.Value.Health.Value;
+                                // Note: Health is int, not int? - use directly
+                                var currentHealth = player.PlayerPawn.Value.Health;
                                 var newHealth = System.Math.Max(currentHealth - hpCost, 1);
                                 player.PlayerPawn.Value.Health = newHealth;
                             }

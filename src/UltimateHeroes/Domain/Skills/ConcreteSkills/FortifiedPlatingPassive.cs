@@ -33,9 +33,9 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return;
             
             var pawn = player.PlayerPawn.Value;
-            if (pawn.Health == null) return;
-            
-            var currentHealth = pawn.Health.Value;
+            // Note: Health is int, not int? - use directly
+            var currentHealth = pawn.Health;
+            if (currentHealth <= 0) return;
             var maxHealth = pawn.MaxHealth;
             var healthPercent = (float)currentHealth / maxHealth;
             

@@ -37,7 +37,7 @@ namespace UltimateHeroes.Presentation.Commands
                 return;
             }
             
-            var xpProgress = _xpService.GetXpProgress(steamId).GetValueOrDefault(0f);
+            var xpProgress = _xpService.GetXpProgress(steamId);
             var xpPercent = (int)(xpProgress * 100);
             
             player.PrintToChat($" {ChatColors.Green}╔════════════════════════════════╗");

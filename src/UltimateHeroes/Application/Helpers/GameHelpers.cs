@@ -78,9 +78,8 @@ namespace UltimateHeroes.Application.Helpers
                 return;
 
             var pawn = player.PlayerPawn.Value;
-            if (pawn.Health == null) return;
-
-            var currentHealth = pawn.Health.Value;
+            // Note: Health is int, not int? - use directly
+            var currentHealth = pawn.Health;
             var maxHealth = pawn.MaxHealth;
             var newHealth = System.Math.Min(currentHealth + amount, maxHealth);
 
@@ -166,7 +165,8 @@ namespace UltimateHeroes.Application.Helpers
                 }
             }
 
-            var currentHealth = pawn.Health.Value;
+            // Note: Health is int, not int? - use directly
+            var currentHealth = pawn.Health;
             var newHealth = System.Math.Max(currentHealth - damage, 0);
 
             pawn.Health = newHealth;
