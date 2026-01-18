@@ -25,7 +25,10 @@ namespace UltimateHeroes.Application.Helpers
             PluginConfiguration config,
             BasePlugin? plugin = null)
         {
-            if (player == null || !player.IsValid || player.AuthorizedSteamID == null) return;
+            if (player == null || !player.IsValid) return;
+            
+            // Skip bots if they don't have a SteamID (but allow bots with SteamID)
+            if (player.AuthorizedSteamID == null && !player.IsBot) return;
             
             var settings = config.LeaderboardSettings;
             if (!settings.Enabled)
@@ -40,7 +43,21 @@ namespace UltimateHeroes.Application.Helpers
                 return;
             }
             
-            var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+            // Get SteamID - for bots, use a fallback
+            string steamId;
+            if (player.AuthorizedSteamID != null)
+            {
+                steamId = player.AuthorizedSteamID.SteamId64.ToString();
+            }
+            else if (player.IsBot)
+            {
+                // Bots might not have SteamID, use slot-based ID
+                steamId = "BOT_" + player.Slot;
+            }
+            else
+            {
+                return; // Skip if no SteamID and not a bot
+            }
             // Use GetOrCreatePlayer to ensure player exists
             var playerState = playerService.GetOrCreatePlayer(steamId, player);
             if (playerState == null)
@@ -120,10 +137,24 @@ namespace UltimateHeroes.Application.Helpers
             var playerNameClean = Regex.Replace(currentName, @"\d+\s\[.*\]\s", "");
             var cleaned = playerNameClean.Trim();
             
-            // Falls der Name leer wird, verwende den originalen Namen
-            if (string.IsNullOrEmpty(cleaned))
+            // Falls der Name leer wird oder nur noch Zahlen/Leerzeichen enthält, verwende den originalen Namen
+            if (string.IsNullOrEmpty(cleaned) || Regex.IsMatch(cleaned, @"^[\d\s]+$"))
             {
-                return currentName;
+                // Versuche es nochmal mit einem anderen Pattern (falls Format anders ist)
+                cleaned = Regex.Replace(currentName, @"^\d+\s*\[[^\]]+\]\s*", "");
+                cleaned = cleaned.Trim();
+                
+                if (string.IsNullOrEmpty(cleaned))
+                {
+                    // Fallback: Entferne nur Zahlen am Anfang
+                    cleaned = Regex.Replace(currentName, @"^\d+\s+", "");
+                    cleaned = cleaned.Trim();
+                    
+                    if (string.IsNullOrEmpty(cleaned))
+                    {
+                        return currentName;
+                    }
+                }
             }
             
             return cleaned;

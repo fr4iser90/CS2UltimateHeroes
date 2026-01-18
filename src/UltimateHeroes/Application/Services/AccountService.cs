@@ -35,7 +35,16 @@ namespace UltimateHeroes.Application.Services
                 return account;
             }
             
-            var dbAccount = _accountRepository.GetAccountLevel(steamId);
+            AccountLevel? dbAccount = null;
+            try
+            {
+                dbAccount = _accountRepository.GetAccountLevel(steamId);
+            }
+            catch
+            {
+                // Table might not exist yet, create default
+            }
+            
             if (dbAccount == null)
             {
                 dbAccount = new AccountLevel
@@ -45,7 +54,14 @@ namespace UltimateHeroes.Application.Services
                     AccountXp = 0f,
                     XpToNextLevel = 100f
                 };
-                _accountRepository.SaveAccountLevel(dbAccount);
+                try
+                {
+                    _accountRepository.SaveAccountLevel(dbAccount);
+                }
+                catch
+                {
+                    // Table might not exist, just use in-memory
+                }
             }
             
             _accountCache[steamId] = dbAccount;

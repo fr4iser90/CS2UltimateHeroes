@@ -76,9 +76,23 @@ namespace UltimateHeroes.Application.EventHandlers
         
         public void OnPlayerSpawn(CCSPlayerController player)
         {
-            if (player == null || !player.IsValid || player.AuthorizedSteamID == null) return;
+            if (player == null || !player.IsValid) return;
             
-            var steamId = player.AuthorizedSteamID.SteamId64.ToString();
+            // Get SteamID - for bots, use a fallback
+            string steamId;
+            if (player.AuthorizedSteamID != null)
+            {
+                steamId = player.AuthorizedSteamID.SteamId64.ToString();
+            }
+            else if (player.IsBot)
+            {
+                steamId = "BOT_" + player.Slot;
+            }
+            else
+            {
+                return; // Skip if no SteamID and not a bot
+            }
+            
             var playerState = _playerService.GetPlayer(steamId);
             
             // Set default hero if no hero is selected
