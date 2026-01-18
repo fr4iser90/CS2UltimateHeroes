@@ -1,6 +1,7 @@
 using System;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Application.Services;
 using UltimateHeroes.Infrastructure.Configuration;

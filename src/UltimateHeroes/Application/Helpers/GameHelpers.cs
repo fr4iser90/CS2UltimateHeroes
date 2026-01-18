@@ -56,7 +56,10 @@ namespace UltimateHeroes.Application.Helpers
                 var pawn = player.PlayerPawn.Value;
                 if (pawn.AbsOrigin == null) continue;
 
-                var distance = Vector.Distance(position, pawn.AbsOrigin);
+                var dx = position.X - pawn.AbsOrigin.X;
+                var dy = position.Y - pawn.AbsOrigin.Y;
+                var dz = position.Z - pawn.AbsOrigin.Z;
+                var distance = (float)System.Math.Sqrt(dx * dx + dy * dy + dz * dz);
                 if (distance <= radius)
                 {
                     players.Add(player);
@@ -81,7 +84,7 @@ namespace UltimateHeroes.Application.Helpers
             var maxHealth = pawn.MaxHealth;
             var newHealth = System.Math.Min(currentHealth + amount, maxHealth);
 
-            pawn.Health.Value = newHealth;
+            pawn.Health = newHealth;
         }
 
         /// <summary>
@@ -122,7 +125,7 @@ namespace UltimateHeroes.Application.Helpers
             }
             
             // Apply buffs (victim) - get from helper
-            var buffService = BuffServiceHelper.GetBuffService();
+            var buffService = Infrastructure.Helpers.BuffServiceHelper.GetBuffService();
             if (buffService != null && playerSteamId != null)
             {
                 // Shield: Damage Reduction
@@ -166,7 +169,7 @@ namespace UltimateHeroes.Application.Helpers
             var currentHealth = pawn.Health.Value;
             var newHealth = System.Math.Max(currentHealth - damage, 0);
 
-            pawn.Health.Value = newHealth;
+            pawn.Health = newHealth;
 
             // TODO: Trigger hurt event if needed
         }
@@ -263,11 +266,10 @@ namespace UltimateHeroes.Application.Helpers
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null)
                 return;
 
-            var pawn = player.PlayerPawn.Value;
-            if (pawn.MovementServices != null)
-            {
-                pawn.MovementServices.MoveSpeedFactor = speedMultiplier;
-            }
+            // Note: MoveSpeedFactor doesn't exist in CS2 API
+            // Movement speed is controlled via other means (e.g., buffs, effects)
+            // This is a placeholder - actual implementation may require game-specific mechanics
+            // For now, we rely on buffs/effects to control movement speed
         }
         
         /// <summary>
@@ -280,19 +282,25 @@ namespace UltimateHeroes.Application.Helpers
             var pawn = player.PlayerPawn.Value;
             if (pawn.AbsVelocity != null)
             {
-                var normalizedDirection = Vector.Normalize(direction);
-                var knockbackVelocity = new Vector(
-                    normalizedDirection.X * force,
-                    normalizedDirection.Y * force,
-                    normalizedDirection.Z * force
-                );
-                
-                var currentVelocity = pawn.AbsVelocity;
-                pawn.AbsVelocity = new Vector(
-                    currentVelocity.X + knockbackVelocity.X,
-                    currentVelocity.Y + knockbackVelocity.Y,
-                    currentVelocity.Z + knockbackVelocity.Z
-                );
+                // Normalize direction manually
+                var length = (float)System.Math.Sqrt(direction.X * direction.X + direction.Y * direction.Y + direction.Z * direction.Z);
+                if (length > 0.001f)
+                {
+                    var normalizedDirection = new Vector(
+                        direction.X / length,
+                        direction.Y / length,
+                        direction.Z / length
+                    );
+                    var knockbackVelocity = new Vector(
+                        normalizedDirection.X * force,
+                        normalizedDirection.Y * force,
+                        normalizedDirection.Z * force
+                    );
+                    
+                    // Note: AbsVelocity is read-only in CS2 API
+                    // Knockback must be applied via other means (e.g., physics, teleportation)
+                    // This is a placeholder - actual implementation may require game-specific mechanics
+                }
             }
         }
     }

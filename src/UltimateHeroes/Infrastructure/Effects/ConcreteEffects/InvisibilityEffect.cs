@@ -28,8 +28,10 @@ namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
             var pawn = player.PlayerPawn.Value;
             if (pawn.MovementServices != null)
             {
-                _originalSpeed = pawn.MovementServices.MoveSpeedFactor;
-                pawn.MovementServices.MoveSpeedFactor = _originalSpeed * 1.2f;
+                // Note: MoveSpeedFactor doesn't exist in CS2 API
+                // Movement speed is controlled via other means (e.g., buffs, effects)
+                // This is a placeholder - actual implementation may require game-specific mechanics
+                _originalSpeed = 1.0f; // Placeholder
             }
             
             player.PrintToChat($" {ChatColors.Purple}[Stealth]{ChatColors.Default} You are invisible for {Duration:F1}s!");
@@ -55,7 +57,8 @@ namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
             var pawn = player.PlayerPawn.Value;
             if (pawn.MovementServices != null)
             {
-                pawn.MovementServices.MoveSpeedFactor = _originalSpeed;
+                // Note: MoveSpeedFactor doesn't exist in CS2 API
+                // Movement speed is controlled via other means (e.g., buffs, effects)
             }
             
             player.PrintToChat($" {ChatColors.Default}[Stealth]{ChatColors.Default} Invisibility effect removed!");

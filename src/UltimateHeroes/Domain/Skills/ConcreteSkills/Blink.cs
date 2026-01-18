@@ -65,7 +65,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 }
             });
             
-            player.PrintToChat($" {ChatColors.Cyan}[Blink]{ChatColors.Default} Teleported {range} units forward!");
+            player.PrintToChat($" {ChatColors.LightBlue}[Blink]{ChatColors.Default} Teleported {range} units forward!");
         }
     }
 }

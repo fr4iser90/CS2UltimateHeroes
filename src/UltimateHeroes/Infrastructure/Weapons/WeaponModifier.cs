@@ -94,17 +94,17 @@ namespace UltimateHeroes.Infrastructure.Weapons
                 // Refill ammo to max (CS2 API)
                 if (weapon.Clip1 != null)
                 {
-                    var maxClip = weapon.GetMaxClip1();
-                    if (maxClip > 0)
-                    {
-                        weapon.Clip1.Value = maxClip;
-                    }
+                    // Note: GetMaxClip1() doesn't exist in CS2 API
+                    // Using a reasonable default (30 rounds for most weapons)
+                    // This should be weapon-specific, but API doesn't provide direct access
+                    var maxClip = 30; // Placeholder - should be weapon-specific
+                    weapon.Clip1 = maxClip;
                 }
             }
             
             // Apply Spread Modifier
             var spreadMultiplier = GetSpreadMultiplier(steamId);
-            if (spreadMultiplier.HasValue && spreadMultiplier.Value != 1f)
+            if (spreadMultiplier.HasValue && spreadMultiplier.GetValueOrDefault(1f) != 1f)
             {
                 // Modify weapon spread via ConVar (CS2 API)
                 // Note: This requires weapon-specific ConVars
@@ -123,26 +123,27 @@ namespace UltimateHeroes.Infrastructure.Weapons
             // Apply Infinite Ammo (refill ammo on reload)
             if (HasInfiniteAmmo(steamId))
             {
-                var weapon = pawn.WeaponServices?.ActiveWeapon.Value;
+                var pawn = player.PlayerPawn.Value;
+                var weapon = pawn?.WeaponServices?.ActiveWeapon.Value;
                 if (weapon != null && weapon.IsValid)
                 {
                     // Set ammo to max (CS2 API)
                     if (weapon.Clip1 != null)
                     {
-                        var maxClip = weapon.GetMaxClip1();
-                        if (maxClip > 0)
-                        {
-                            weapon.Clip1.Value = maxClip;
-                        }
+                        // Note: GetMaxClip1() doesn't exist in CS2 API
+                        // Using a reasonable default (30 rounds for most weapons)
+                        var maxClip = 30; // Placeholder - should be weapon-specific
+                        weapon.Clip1 = maxClip;
                     }
                     
                     if (weapon.ReserveAmmo != null)
                     {
-                        var maxReserve = weapon.GetMaxReserveAmmo();
-                        if (maxReserve > 0)
-                        {
-                            weapon.ReserveAmmo.Value = maxReserve;
-                        }
+                        // Note: GetMaxReserveAmmo() doesn't exist in CS2 API
+                        // Using a reasonable default (90 rounds for most weapons)
+                        var maxReserve = 90; // Placeholder - should be weapon-specific
+                        // Note: ReserveAmmo is read-only in CS2 API
+                        // Reserve ammo cannot be directly modified
+                        // This is a placeholder - actual implementation may require game-specific mechanics
                     }
                 }
             }

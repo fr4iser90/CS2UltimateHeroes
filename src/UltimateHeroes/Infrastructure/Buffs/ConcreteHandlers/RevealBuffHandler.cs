@@ -1,7 +1,7 @@
 using CounterStrikeSharp.API.Core;
 using UltimateHeroes.Domain.Buffs;
 using UltimateHeroes.Infrastructure.Buffs;
-using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Application.Helpers;
 
 namespace UltimateHeroes.Infrastructure.Buffs.ConcreteHandlers
 {

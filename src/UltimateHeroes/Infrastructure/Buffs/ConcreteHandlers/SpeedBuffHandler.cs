@@ -2,7 +2,7 @@ using System.Linq;
 using CounterStrikeSharp.API.Core;
 using UltimateHeroes.Domain.Buffs;
 using UltimateHeroes.Infrastructure.Buffs;
-using UltimateHeroes.Infrastructure.Helpers;
+using UltimateHeroes.Application.Helpers;
 
 namespace UltimateHeroes.Infrastructure.Buffs.ConcreteHandlers
 {
@@ -17,7 +17,7 @@ namespace UltimateHeroes.Infrastructure.Buffs.ConcreteHandlers
         {
             if (player == null || !player.IsValid) return;
             
-            var multiplier = buff.Parameters.GetValueOrDefault("multiplier", 0f);
+            var multiplier = buff.Parameters.ContainsKey("multiplier") ? buff.Parameters["multiplier"] : 0f;
             
             // Handle both SpeedBoost (positive) and SpeedReduction (negative)
             if (buff.Type == BuffType.SpeedReduction)
@@ -58,7 +58,7 @@ namespace UltimateHeroes.Infrastructure.Buffs.ConcreteHandlers
         {
             if (player == null || !player.IsValid) return;
             
-            var multiplier = buff.Parameters.GetValueOrDefault("multiplier", 0f);
+            var multiplier = buff.Parameters.ContainsKey("multiplier") ? buff.Parameters["multiplier"] : 0f;
             GameHelpers.SetMovementSpeed(player, 1.0f + multiplier); // Negative value = reduction
         }
         

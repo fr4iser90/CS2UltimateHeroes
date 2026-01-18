@@ -58,7 +58,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 }
             });
             
-            player.PrintToChat($" {ChatColors.Cyan}[Grapple Hook]{ChatColors.Default} Grappled {range:F0} units!");
+            player.PrintToChat($" {ChatColors.LightBlue}[Grapple Hook]{ChatColors.Default} Grappled {range:F0} units!");
         }
     }
 }

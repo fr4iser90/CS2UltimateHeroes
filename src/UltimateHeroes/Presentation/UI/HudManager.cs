@@ -60,7 +60,9 @@ namespace UltimateHeroes.Presentation.UI
             
             foreach (var player in players)
             {
-                if (player == null || !player.IsValid || !player.IsAlive) continue;
+                if (player == null || !player.IsValid || player.PlayerPawn.Value == null) continue;
+                // Note: IsAlive doesn't exist on CCSPlayerPawn, check Health instead
+                if (player.PlayerPawn.Value.Health == null || player.PlayerPawn.Value.Health.Value <= 0) continue;
                 if (!_enabledPlayers.Contains(player.Slot)) continue;
                 if (player.AuthorizedSteamID == null) continue;
                 

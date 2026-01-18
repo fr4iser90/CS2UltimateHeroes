@@ -37,7 +37,7 @@ namespace UltimateHeroes.Presentation.Commands
                 return;
             }
             
-            var xpProgress = _xpService.GetXpProgress(steamId) ?? 0f;
+            var xpProgress = _xpService.GetXpProgress(steamId).GetValueOrDefault(0f);
             var xpPercent = (int)(xpProgress * 100);
             
             player.PrintToChat($" {ChatColors.Green}╔════════════════════════════════╗");
@@ -53,7 +53,7 @@ namespace UltimateHeroes.Presentation.Commands
                 player.PrintToChat($" {ChatColors.Yellow}Active Skills:");
                 foreach (var skill in playerState.ActiveSkills)
                 {
-                    player.PrintToChat($" {ChatColors.Gray}  - {skill.DisplayName}");
+                    player.PrintToChat($" {ChatColors.Default}  - {skill.DisplayName}");
                 }
             }
             
@@ -146,7 +146,7 @@ namespace UltimateHeroes.Presentation.Commands
                 foreach (var kvp in buildStats.OrderByDescending(x => x.Value.kills))
                 {
                     var kd = kvp.Value.deaths > 0 ? (float)kvp.Value.kills / kvp.Value.deaths : kvp.Value.kills;
-                    player.PrintToChat($" {ChatColors.Gray}Build {kvp.Key}: K/D {kd:F2} ({kvp.Value.kills}K/{kvp.Value.deaths}D)");
+                    player.PrintToChat($" {ChatColors.Default}Build {kvp.Key}: K/D {kd:F2} ({kvp.Value.kills}K/{kvp.Value.deaths}D)");
                 }
             }
         }

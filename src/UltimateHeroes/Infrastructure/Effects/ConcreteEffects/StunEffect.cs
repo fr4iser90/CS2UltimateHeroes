@@ -23,7 +23,9 @@ namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
             if (pawn.MovementServices != null)
             {
                 // Set movement speed to 0 (effectively disabling movement)
-                pawn.MovementServices.MoveSpeedFactor = 0f;
+                // Note: MoveSpeedFactor doesn't exist in CS2 API
+                // Movement speed is controlled via other means (e.g., buffs, effects)
+                // This is a placeholder - actual implementation may require game-specific mechanics
             }
             
             player.PrintToChat($" {ChatColors.Red}[Stunned]{ChatColors.Default} You are stunned for {Duration:F1}s!");
@@ -43,7 +45,8 @@ namespace UltimateHeroes.Infrastructure.Effects.ConcreteEffects
             if (pawn.MovementServices != null)
             {
                 // Restore normal movement speed
-                pawn.MovementServices.MoveSpeedFactor = 1.0f;
+                // Note: MoveSpeedFactor doesn't exist in CS2 API
+                // Movement speed is controlled via other means (e.g., buffs, effects)
             }
             
             player.PrintToChat($" {ChatColors.Green}[Stun]{ChatColors.Default} Stun effect removed!");

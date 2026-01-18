@@ -199,7 +199,10 @@ namespace UltimateHeroes.Application.Services
                 var enemyPawn = enemy.PlayerPawn.Value;
                 if (enemyPawn?.AbsOrigin == null) continue;
                 
-                var distance = Vector.Distance(entity.Position, enemyPawn.AbsOrigin);
+                var dx = entity.Position.X - enemyPawn.AbsOrigin.X;
+                var dy = entity.Position.Y - enemyPawn.AbsOrigin.Y;
+                var dz = entity.Position.Z - enemyPawn.AbsOrigin.Z;
+                var distance = (float)System.Math.Sqrt(dx * dx + dy * dy + dz * dz);
                 if (distance < closestDistance)
                 {
                     closestDistance = distance;

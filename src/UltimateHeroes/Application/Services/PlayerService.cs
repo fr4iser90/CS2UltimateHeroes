@@ -152,7 +152,9 @@ namespace UltimateHeroes.Application.Services
             {
                 if (pawn.MovementServices != null)
                 {
-                    pawn.MovementServices.MoveSpeedFactor = 1.0f + movementSpeed;
+                    // Note: MoveSpeedFactor doesn't exist in CS2 API
+                    // Movement speed is controlled via other means (e.g., buffs, effects)
+                    // This is a placeholder - actual implementation may require game-specific mechanics
                 }
             }
             

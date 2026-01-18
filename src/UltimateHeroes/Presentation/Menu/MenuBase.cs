@@ -29,7 +29,7 @@ namespace UltimateHeroes.Presentation.Menu
         
         protected void PrintInfo(CCSPlayerController player, string text)
         {
-            player.PrintToChat($" {ChatColors.Gray}ℹ {text}");
+            player.PrintToChat($" {ChatColors.Default}ℹ {text}");
         }
         
         protected void PrintSuccess(CCSPlayerController player, string text)
@@ -44,7 +44,7 @@ namespace UltimateHeroes.Presentation.Menu
         
         protected void PrintSeparator(CCSPlayerController player)
         {
-            player.PrintToChat($" {ChatColors.Gray}────────────────────────────────────────");
+            player.PrintToChat($" {ChatColors.Default}────────────────────────────────────────");
         }
     }
 }

@@ -58,7 +58,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 }
             });
             
-            player.PrintToChat($" {ChatColors.Cyan}[Wall Dash]{ChatColors.Default} Dashed {dashDistance:F0} units!");
+            player.PrintToChat($" {ChatColors.LightBlue}[Wall Dash]{ChatColors.Default} Dashed {dashDistance:F0} units!");
         }
     }
 }

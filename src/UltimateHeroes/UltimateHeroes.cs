@@ -75,6 +75,21 @@ namespace UltimateHeroes
             _bootstrap = new PluginBootstrap(this, ModuleDirectory);
             _bootstrap.Initialize();
             
+            // Initialize Menus and HUD
+            _bootstrap.HudManager = new Presentation.UI.HudManager(
+                _bootstrap.SkillService!,
+                _bootstrap.XpService!,
+                _bootstrap.PlayerService!,
+                _bootstrap.CooldownManager!,
+                _bootstrap.MasteryService,
+                _bootstrap.AccountService
+            );
+            _bootstrap.HeroMenu = new Presentation.Menu.HeroMenu(_bootstrap.HeroService!, _bootstrap.PlayerService!);
+            _bootstrap.BuildMenu = new Presentation.Menu.BuildMenu(_bootstrap.BuildService!, _bootstrap.PlayerService!);
+            _bootstrap.SkillMenu = new Presentation.Menu.SkillMenu(_bootstrap.SkillService!, _bootstrap.PlayerService!, _bootstrap.CooldownManager!);
+            _bootstrap.TalentMenu = new Presentation.Menu.TalentMenu(_bootstrap.TalentService!, _bootstrap.PlayerService!);
+            _bootstrap.ShopMenu = new Presentation.Menu.ShopMenu(_bootstrap.ShopService!, _bootstrap.PlayerService!);
+            
             // ============================================
             // 🧪 API TEST PLUGIN (aktiviert für API-Tests)
             // ============================================
@@ -142,9 +157,9 @@ namespace UltimateHeroes
             // 🎯 COUNTER-STRIKE SHARP EVENTS
             // ============================================
             RegisterListener<Listeners.OnMapStart>(OnMapStart);
-            RegisterListener<Listeners.OnClientConnect>(OnClientConnect);
             RegisterListener<Listeners.OnClientDisconnect>(OnClientDisconnect);
-            RegisterListener<Listeners.OnPlayerSpawn>(OnPlayerSpawn);
+            RegisterEventHandler<EventPlayerConnect>(OnPlayerConnect);
+            RegisterEventHandler<EventPlayerSpawn>(OnPlayerSpawn);
             RegisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
             RegisterEventHandler<EventPlayerHurt>(OnPlayerHurt);
             RegisterEventHandler<EventRoundStart>(OnRoundStart);
@@ -162,9 +177,13 @@ namespace UltimateHeroes
             _mapEventHandler?.OnMapStart(mapName);
         }
         
-        private void OnClientConnect(int playerSlot)
+        private HookResult OnPlayerConnect(EventPlayerConnect @event, GameEventInfo info)
         {
-            _playerEventHandler?.OnClientConnect(playerSlot);
+            if (@event.Userid != null && @event.Userid.IsValid)
+            {
+                _playerEventHandler?.OnClientConnect(@event.Userid.Slot);
+            }
+            return HookResult.Continue;
         }
         
         private void OnClientDisconnect(int playerSlot)
@@ -172,9 +191,13 @@ namespace UltimateHeroes
             _playerEventHandler?.OnClientDisconnect(playerSlot);
         }
         
-        private void OnPlayerSpawn(CCSPlayerController player)
+        private HookResult OnPlayerSpawn(EventPlayerSpawn @event, GameEventInfo info)
         {
-            _playerEventHandler?.OnPlayerSpawn(player);
+            if (@event.Userid != null && @event.Userid.IsValid)
+            {
+                _playerEventHandler?.OnPlayerSpawn(@event.Userid);
+            }
+            return HookResult.Continue;
         }
         
         private HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)

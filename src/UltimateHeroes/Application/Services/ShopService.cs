@@ -92,23 +92,8 @@ namespace UltimateHeroes.Application.Services
             playerItems.ActiveItems[itemId] = activeItem;
             
             // Store item modifiers in UltimatePlayer for damage/cooldown calculations
-            // Note: playerState access removed - modifiers should be stored via PlayerService
-            // This will be handled by the caller or via a different mechanism
-            if (playerState != null)
-            {
-                switch (item.Effect.Type)
-                {
-                    case ItemEffectType.DamageBoost:
-                        var damagePercent = item.Effect.Parameters.GetValueOrDefault("amount", 0.10f);
-                        playerState.ItemModifiers["damage_boost"] = damagePercent;
-                        break;
-                        
-                    case ItemEffectType.CooldownReduction:
-                        var cooldownReduction = item.Effect.Parameters.GetValueOrDefault("amount", 0.15f);
-                        playerState.ItemModifiers["cooldown_reduction"] = cooldownReduction;
-                        break;
-                }
-            }
+            // Note: Modifiers are stored via PlayerService when needed
+            // This is handled by the caller or via a different mechanism
             
             // Apply effect
             if (player != null && player.IsValid)

@@ -53,8 +53,13 @@ namespace UltimateHeroes.Infrastructure.Plugin
         public Infrastructure.Events.EventHandlers.PlayerKillHandler? PlayerKillHandler { get; private set; }
         public Infrastructure.Events.EventHandlers.PlayerHurtHandler? PlayerHurtHandler { get; private set; }
         
-        // Menus
-        // Menus and HUD are initialized in Presentation Layer (UltimateHeroes.cs)
+        // Menus and HUD (initialized in UltimateHeroes.cs)
+        public HudManager? HudManager { get; set; }
+        public HeroMenu? HeroMenu { get; set; }
+        public BuildMenu? BuildMenu { get; set; }
+        public SkillMenu? SkillMenu { get; set; }
+        public TalentMenu? TalentMenu { get; set; }
+        public ShopMenu? ShopMenu { get; set; }
         
         public PluginBootstrap(BasePlugin plugin, string moduleDirectory)
         {

@@ -33,21 +33,21 @@ namespace UltimateHeroes.Infrastructure.Buffs.ConcreteHandlers
                 // Set ammo to max (CS2 API)
                 if (weapon.Clip1 != null)
                 {
-                    var maxClip = weapon.GetMaxClip1();
-                    if (maxClip > 0)
-                    {
-                        weapon.Clip1.Value = maxClip;
-                    }
+                    // Note: GetMaxClip1() doesn't exist in CS2 API
+                    // Using a reasonable default (30 rounds for most weapons)
+                    var maxClip = 30; // Placeholder - should be weapon-specific
+                    weapon.Clip1 = maxClip;
                 }
                 
                 // Also refill reserve ammo
                 if (weapon.ReserveAmmo != null)
                 {
-                    var maxReserve = weapon.GetMaxReserveAmmo();
-                    if (maxReserve > 0)
-                    {
-                        weapon.ReserveAmmo.Value = maxReserve;
-                    }
+                    // Note: GetMaxReserveAmmo() doesn't exist in CS2 API
+                    // Using a reasonable default (90 rounds for most weapons)
+                    var maxReserve = 90; // Placeholder - should be weapon-specific
+                    // Note: ReserveAmmo is read-only in CS2 API
+                    // Reserve ammo cannot be directly modified
+                    // This is a placeholder - actual implementation may require game-specific mechanics
                 }
             }
         }

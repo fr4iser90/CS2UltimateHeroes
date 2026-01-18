@@ -142,7 +142,7 @@ namespace UltimateHeroes.Application.Services
                             {
                                 var currentHealth = player.PlayerPawn.Value.Health.Value;
                                 var newHealth = System.Math.Max(currentHealth - hpCost, 1);
-                                player.PlayerPawn.Value.Health.Value = newHealth;
+                                player.PlayerPawn.Value.Health = newHealth;
                             }
                             
                             // Power Bonus is applied per-skill (skills need to check for Overclock)

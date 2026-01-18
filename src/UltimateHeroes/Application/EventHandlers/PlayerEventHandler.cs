@@ -112,7 +112,7 @@ namespace UltimateHeroes.Application.EventHandlers
                 
                 if (playerState != null)
                 {
-                    playerState.MatchStats.Deaths++;
+                    playerState.Deaths++;
                     _playerService.SavePlayer(playerState);
                 }
                 

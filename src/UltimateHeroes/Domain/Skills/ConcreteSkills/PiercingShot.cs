@@ -115,7 +115,7 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                         targetPawn.AbsOrigin.Y - origin.Y,
                         targetPawn.AbsOrigin.Z - origin.Z
                     );
-                    var distance = Vector.Length(toTarget);
+                    var distance = (float)System.Math.Sqrt(toTarget.X * toTarget.X + toTarget.Y * toTarget.Y + toTarget.Z * toTarget.Z);
                     if (distance < 0.1f) continue;
                     
                     var direction = new Vector(

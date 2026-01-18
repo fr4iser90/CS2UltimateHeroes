@@ -24,14 +24,10 @@ namespace UltimateHeroes.Application.Services
         /// </summary>
         public static GameMode DetectCurrentMode()
         {
-            // Prüfe Server-Variablen
-            var gameMode = Server.ExecuteCommand<string>("mp_gamemode");
-            var gameType = Server.ExecuteCommand<string>("game_type");
-            
-            // Alternative: Prüfe ConVar
+            // Prüfe Server-Variablen via ConVar
             try
             {
-                var gamemodeCvar = ConVar.Find("mp_gamemode");
+                var gamemodeCvar = CounterStrikeSharp.API.Core.ConVar.Find("mp_gamemode");
                 if (gamemodeCvar != null)
                 {
                     var mode = gamemodeCvar.GetPrimitiveValue<string>();

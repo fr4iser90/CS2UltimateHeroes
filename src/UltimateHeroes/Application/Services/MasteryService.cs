@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using UltimateHeroes.Domain.Progression;
@@ -115,7 +116,7 @@ namespace UltimateHeroes.Application.Services
         private void NotifyMasteryLevelUp(string steamId, string skillId, int newLevel)
         {
             // Find player and notify
-            var players = Utilities.GetPlayers();
+            var players = CounterStrikeSharp.API.Utilities.GetPlayers();
             var player = players.FirstOrDefault(p => 
                 p != null && 
                 p.IsValid && 

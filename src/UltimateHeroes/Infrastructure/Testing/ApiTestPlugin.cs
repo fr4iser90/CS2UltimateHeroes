@@ -1,7 +1,9 @@
 using System;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
+using ConVar = CounterStrikeSharp.API.Core.ConVar;
 
 namespace UltimateHeroes.Infrastructure.Testing
 {

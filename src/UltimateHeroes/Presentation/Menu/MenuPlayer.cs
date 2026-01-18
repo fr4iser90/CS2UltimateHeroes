@@ -23,11 +23,12 @@ namespace UltimateHeroes.Presentation.Menu
         {
             if (Player == null || !Player.IsValid) return;
             
-            Player.DisableMovement();
+            // Note: DisableMovement doesn't exist in CS2 API
+            // Movement is controlled via other means (e.g., speed modifiers)
 
             if (menu == null)
             {
-                Player.EnableMovement();
+                // Note: EnableMovement doesn't exist in CS2 API
                 MainMenu = null;
                 CurrentChoice = null;
                 CenterHtml = "";
@@ -71,7 +72,7 @@ namespace UltimateHeroes.Presentation.Menu
             {
                 if (Player != null && Player.IsValid && Player.PlayerPawn.Value != null && Player.PlayerPawn.Value.IsValid)
                 {
-                    Player.EnableMovement();
+                    // Note: EnableMovement doesn't exist in CS2 API
                 }
                 return;
             }

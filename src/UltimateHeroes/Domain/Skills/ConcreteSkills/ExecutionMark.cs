@@ -72,7 +72,10 @@ namespace UltimateHeroes.Domain.Skills.ConcreteSkills
                 var enemyPawn = enemy.PlayerPawn.Value;
                 if (enemyPawn.AbsOrigin == null) continue;
                 
-                var distance = Vector.Distance(targetPos, enemyPawn.AbsOrigin);
+                var dx = targetPos.X - enemyPawn.AbsOrigin.X;
+                var dy = targetPos.Y - enemyPawn.AbsOrigin.Y;
+                var dz = targetPos.Z - enemyPawn.AbsOrigin.Z;
+                var distance = (float)System.Math.Sqrt(dx * dx + dy * dy + dz * dz);
                 if (distance < range && distance < closestDistance)
                 {
                     closestDistance = distance;
